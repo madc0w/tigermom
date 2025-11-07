@@ -7,7 +7,9 @@
 		"dev": "nuxt dev",
 		"generate": "nuxt generate",
 		"preview": "nuxt preview",
-		"postinstall": "nuxt prepare"
+		"postinstall": "nuxt prepare",
+		"start": "node .output/server/index.mjs",
+		"heroku-postbuild": "npm run build"
 	},
 	"dependencies": {
 		"mongodb": "^7.0.0",
