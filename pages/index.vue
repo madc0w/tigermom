@@ -1,35 +1,39 @@
 <template>
 	<div class="container">
-		<h1>Nuxt 3 + MongoDB (TypeScript)</h1>
+		<h1>{{ t.app.title }}</h1>
 		<div v-if="!isAuthenticated" class="auth-links">
-			<NuxtLink to="/auth/signin">Sign in</NuxtLink>
+			<NuxtLink to="/auth/signin">{{ t.auth.signIn }}</NuxtLink>
 			<span> · </span>
-			<NuxtLink to="/auth/signup">Sign up</NuxtLink>
+			<NuxtLink to="/auth/signup">{{ t.auth.signUp }}</NuxtLink>
 		</div>
 		<div v-else class="auth-info">
-			<span class="welcome">Welcome, {{ currentUser?.firstName }}!</span>
-			<button class="btn secondary" @click="logout">Sign out</button>
+			<span class="welcome">{{
+				t.auth.welcome.replace('{name}', currentUser?.firstName || '')
+			}}</span>
+			<button class="btn secondary" @click="logout">
+				{{ t.auth.signOut }}
+			</button>
 		</div>
 
 		<div v-if="!isAuthenticated" class="unauth-note">
-			<p>Please sign in to view and add tasks.</p>
+			<p>{{ t.tasks.pleaseSignIn }}</p>
 		</div>
 		<template v-else>
 			<form class="row" @submit.prevent="add">
 				<input
 					v-model="newTitle"
 					class="input"
-					placeholder="Add a task..."
+					:placeholder="t.tasks.addPlaceholder"
 					:disabled="adding"
 				/>
 				<button class="btn" :disabled="adding || !newTitle.trim()">
-					{{ adding ? 'Adding...' : 'Add' }}
+					{{ adding ? t.tasks.addingButton : t.tasks.addButton }}
 				</button>
 			</form>
 
 			<div class="spacer" />
 
-			<div v-if="pending">Loading...</div>
+			<div v-if="pending">{{ t.tasks.loading }}</div>
 			<div v-else-if="error" class="error">{{ error.message }}</div>
 			<ul v-else class="list">
 				<li v-for="t in tasks || []" :key="asKey(t)">
@@ -45,6 +49,10 @@
 import { $fetch } from 'ofetch';
 import { computed, ref, watch } from 'vue';
 import { useAuth } from '../composables/useAuth';
+import { en } from '../i18n/en';
+
+const t = en;
+
 type Task = {
 	_id: string | { $oid: string } | any;
 	title: string;

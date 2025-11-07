@@ -1,28 +1,29 @@
 <template>
 	<div class="auth-container">
-		<h2>Sign in</h2>
+		<h2>{{ t.auth.signIn }}</h2>
 		<form class="form" @submit.prevent="onSubmit">
 			<label>
-				<span>Email</span>
+				<span>{{ t.auth.email }}</span>
 				<input
 					v-model.trim="email"
 					type="email"
 					required
-					placeholder="you@example.com"
+					:placeholder="t.auth.emailPlaceholder"
 				/>
 			</label>
 			<label>
-				<span>Password</span>
+				<span>{{ t.auth.password }}</span>
 				<input v-model="password" type="password" required />
 			</label>
 
 			<button class="btn" :disabled="submitting">
-				{{ submitting ? 'Signing in…' : 'Sign in' }}
+				{{ submitting ? t.auth.signingIn : t.auth.signIn }}
 			</button>
 
 			<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
 			<p class="switch">
-				No account? <NuxtLink to="/auth/signup">Create one</NuxtLink>
+				{{ t.auth.noAccount }}
+				<NuxtLink to="/auth/signup">{{ t.auth.createOne }}</NuxtLink>
 			</p>
 		</form>
 	</div>
@@ -33,6 +34,9 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import type { AuthPayload } from '../../composables/useAuth';
 import { useAuth } from '../../composables/useAuth';
+import { en } from '../../i18n/en';
+
+const t = en;
 
 const email = ref('');
 const password = ref('');
@@ -56,7 +60,7 @@ async function onSubmit() {
 		setAuth(res);
 		await router.push('/');
 	} catch (e: any) {
-		errorMsg.value = e?.data?.message || e?.message || 'Failed to sign in';
+		errorMsg.value = e?.data?.message || e?.message || t.auth.failedToSignIn;
 	} finally {
 		submitting.value = false;
 	}

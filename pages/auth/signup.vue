@@ -1,48 +1,53 @@
 <template>
 	<div class="auth-container">
-		<h2>Create your account</h2>
+		<h2>{{ t.auth.createYourAccount }}</h2>
 		<form class="form" @submit.prevent="onSubmit">
 			<label>
-				<span>Email</span>
+				<span>{{ t.auth.email }}</span>
 				<input
 					v-model.trim="email"
 					type="email"
 					required
-					placeholder="you@example.com"
+					:placeholder="t.auth.emailPlaceholder"
 				/>
 			</label>
 			<div class="row">
 				<label>
-					<span>First name</span>
+					<span>{{ t.auth.firstName }}</span>
 					<input v-model.trim="firstName" required />
 				</label>
 				<label>
-					<span>Last name</span>
+					<span>{{ t.auth.lastName }}</span>
 					<input v-model.trim="lastName" required />
 				</label>
 			</div>
 			<label>
-				<span>Password</span>
+				<span>{{ t.auth.password }}</span>
 				<input
 					v-model="password"
 					type="password"
 					required
 					minlength="8"
-					placeholder="At least 8 characters"
+					:placeholder="t.auth.passwordPlaceholder"
 				/>
 			</label>
 			<label>
-				<span>Phone (optional)</span>
-				<input v-model.trim="phone" type="tel" placeholder="+1 555 555 5555" />
+				<span>{{ t.auth.phone }}</span>
+				<input
+					v-model.trim="phone"
+					type="tel"
+					:placeholder="t.auth.phonePlaceholder"
+				/>
 			</label>
 
 			<button class="btn" :disabled="submitting">
-				{{ submitting ? 'Creating account…' : 'Sign up' }}
+				{{ submitting ? t.auth.creatingAccount : t.auth.signUp }}
 			</button>
 
 			<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
 			<p class="switch">
-				Already have an account? <NuxtLink to="/auth/signin">Sign in</NuxtLink>
+				{{ t.auth.alreadyHaveAccount }}
+				<NuxtLink to="/auth/signin">{{ t.auth.signIn }}</NuxtLink>
 			</p>
 		</form>
 	</div>
@@ -53,6 +58,10 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import type { AuthPayload } from '../../composables/useAuth';
 import { useAuth } from '../../composables/useAuth';
+import { en } from '../../i18n/en';
+
+const t = en;
+
 const email = ref('');
 const firstName = ref('');
 const lastName = ref('');
@@ -66,7 +75,7 @@ const router = useRouter();
 async function onSubmit() {
 	errorMsg.value = '';
 	if (password.value.length < 8) {
-		errorMsg.value = 'Password must be at least 8 characters';
+		errorMsg.value = t.auth.passwordMinLength;
 		return;
 	}
 	submitting.value = true;
@@ -85,7 +94,7 @@ async function onSubmit() {
 		setAuth(res);
 		await router.push('/');
 	} catch (e: any) {
-		errorMsg.value = e?.data?.message || e?.message || 'Failed to sign up';
+		errorMsg.value = e?.data?.message || e?.message || t.auth.failedToSignUp;
 	} finally {
 		submitting.value = false;
 	}
