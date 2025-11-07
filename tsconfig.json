@@ -1,6 +1,12 @@
 {
   // https://nuxt.com/docs/guide/concepts/typescript
   "files": [],
+  "compilerOptions": {
+    "types": [
+      "nuxt",
+      "node"
+    ]
+  },
   "references": [
     {
       "path": "./.nuxt/tsconfig.app.json"

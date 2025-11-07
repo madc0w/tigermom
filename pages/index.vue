@@ -1,35 +1,50 @@
 <template>
 	<div class="container">
 		<h1>Nuxt 3 + MongoDB (TypeScript)</h1>
+		<div v-if="!isAuthenticated" class="auth-links">
+			<NuxtLink to="/auth/signin">Sign in</NuxtLink>
+			<span> · </span>
+			<NuxtLink to="/auth/signup">Sign up</NuxtLink>
+		</div>
+		<div v-else class="auth-info">
+			<span class="welcome">Welcome, {{ currentUser?.firstName }}!</span>
+			<button class="btn secondary" @click="logout">Sign out</button>
+		</div>
 
-		<form class="row" @submit.prevent="add">
-			<input
-				v-model="newTitle"
-				class="input"
-				placeholder="Add a task..."
-				:disabled="adding"
-			/>
-			<button class="btn" :disabled="adding || !newTitle.trim()">
-				{{ adding ? 'Adding...' : 'Add' }}
-			</button>
-		</form>
+		<div v-if="!isAuthenticated" class="unauth-note">
+			<p>Please sign in to view and add tasks.</p>
+		</div>
+		<template v-else>
+			<form class="row" @submit.prevent="add">
+				<input
+					v-model="newTitle"
+					class="input"
+					placeholder="Add a task..."
+					:disabled="adding"
+				/>
+				<button class="btn" :disabled="adding || !newTitle.trim()">
+					{{ adding ? 'Adding...' : 'Add' }}
+				</button>
+			</form>
 
-		<div class="spacer" />
+			<div class="spacer" />
 
-		<div v-if="pending">Loading...</div>
-		<div v-else-if="error" class="error">{{ error.message }}</div>
-		<ul v-else class="list">
-			<li v-for="t in tasks || []" :key="asKey(t)">
-				<span class="title">{{ t.title }}</span>
-				<time class="date">{{ fmt(t.createdAt) }}</time>
-			</li>
-		</ul>
+			<div v-if="pending">Loading...</div>
+			<div v-else-if="error" class="error">{{ error.message }}</div>
+			<ul v-else class="list">
+				<li v-for="t in tasks || []" :key="asKey(t)">
+					<span class="title">{{ t.title }}</span>
+					<time class="date">{{ fmt(t.createdAt) }}</time>
+				</li>
+			</ul>
+		</template>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { $fetch } from 'ofetch';
-import { onMounted, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { useAuth } from '../composables/useAuth';
 type Task = {
 	_id: string | { $oid: string } | any;
 	title: string;
@@ -39,8 +54,16 @@ type Task = {
 const newTitle = ref('');
 const adding = ref(false);
 const tasks = ref<Task[] | null>(null);
-const pending = ref(true);
+const pending = ref(false);
 const error = ref<Error | null>(null);
+const { auth, isAuthenticated, signOut } = useAuth();
+// Computed user object to help template type narrowing (avoids possibly null error)
+const currentUser = computed(() => auth.value?.user || null);
+
+function logout() {
+	signOut();
+	tasks.value = [];
+}
 
 async function refresh() {
 	pending.value = true;
@@ -54,9 +77,13 @@ async function refresh() {
 	}
 }
 
-onMounted(() => {
-	void refresh();
-});
+watch(
+	isAuthenticated,
+	(val) => {
+		if (val) void refresh();
+	},
+	{ immediate: true }
+);
 
 function asKey(t: Task) {
 	// Handle possible different shapes for ObjectId when serialized
@@ -93,6 +120,15 @@ async function add() {
 	font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
 		Cantarell, Noto Sans, Helvetica Neue, Arial, Apple Color Emoji,
 		Segoe UI Emoji;
+}
+h2 {
+	margin-top: 16px;
+}
+.auth-links {
+	margin: 8px 0 20px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
 }
 h1 {
 	font-size: 24px;
