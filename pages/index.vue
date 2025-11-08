@@ -24,9 +24,14 @@
 					<span class="welcome-message">{{
 						t.auth.welcome.replace('{name}', currentUser?.firstName || '')
 					}}</span>
-					<button class="btn btn-outline" @click="logout">
-						{{ t.auth.signOut }}
-					</button>
+					<div class="user-actions">
+						<NuxtLink to="/settings" class="btn btn-outline">
+							{{ t.settings.title }}
+						</NuxtLink>
+						<button class="btn btn-outline" @click="logout">
+							{{ t.auth.signOut }}
+						</button>
+					</div>
 				</div>
 			</div>
 
@@ -229,6 +234,12 @@ async function add() {
 	align-items: center;
 	justify-content: center;
 	gap: 20px;
+	flex-wrap: wrap;
+}
+
+.user-actions {
+	display: flex;
+	gap: 12px;
 	flex-wrap: wrap;
 }
 
