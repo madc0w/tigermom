@@ -1,6 +1,8 @@
 export const en = {
 	app: {
 		title: 'TigerMom',
+		logoAlt: 'TigerMom Logo',
+		tagline: 'Stay organized. Stay on top of your tasks.',
 	},
 	auth: {
 		signIn: 'Sign in',
@@ -31,6 +33,21 @@ export const en = {
 		addingButton: 'Adding...',
 		loading: 'Loading...',
 		pleaseSignIn: 'Please sign in to view and add tasks.',
+		emptyState: 'No tasks yet. Add one above to get started!',
+	},
+	features: {
+		simpleTaskManagement: {
+			title: 'Simple Task Management',
+			description: 'Add and track your tasks with ease.',
+		},
+		secureAndPrivate: {
+			title: 'Secure & Private',
+			description: 'Your data is protected and private.',
+		},
+		fastAndResponsive: {
+			title: 'Fast & Responsive',
+			description: 'Built for speed and efficiency',
+		},
 	},
 } as const;
 

@@ -4,10 +4,10 @@
 			<!-- Hero Section -->
 			<div class="hero">
 				<div class="logo-wrapper">
-					<img src="/tigermom.png" alt="TigerMom Logo" class="logo" />
+					<img src="/tigermom.png" :alt="t.app.logoAlt" class="logo" />
 				</div>
 				<h1 class="app-title">{{ t.app.title }}</h1>
-				<p class="tagline">Stay organized, stay on top of your tasks</p>
+				<p class="tagline">{{ t.app.tagline }}</p>
 
 				<!-- Auth Section -->
 				<div v-if="!isAuthenticated" class="auth-section">
@@ -35,18 +35,18 @@
 				<div class="feature-grid">
 					<div class="feature-card">
 						<div class="feature-icon">✓</div>
-						<h3>Simple Task Management</h3>
-						<p>Add and track your tasks with ease</p>
+						<h3>{{ t.features.simpleTaskManagement.title }}</h3>
+						<p>{{ t.features.simpleTaskManagement.description }}</p>
 					</div>
 					<div class="feature-card">
 						<div class="feature-icon">🔒</div>
-						<h3>Secure & Private</h3>
-						<p>Your data is protected and private</p>
+						<h3>{{ t.features.secureAndPrivate.title }}</h3>
+						<p>{{ t.features.secureAndPrivate.description }}</p>
 					</div>
 					<div class="feature-card">
 						<div class="feature-icon">⚡</div>
-						<h3>Fast & Responsive</h3>
-						<p>Built for speed and efficiency</p>
+						<h3>{{ t.features.fastAndResponsive.title }}</h3>
+						<p>{{ t.features.fastAndResponsive.description }}</p>
 					</div>
 				</div>
 			</div>
@@ -72,7 +72,7 @@
 						<div v-else-if="error" class="error">{{ error.message }}</div>
 						<div v-else-if="!tasks || tasks.length === 0" class="empty-state">
 							<div class="empty-icon">📝</div>
-							<p>No tasks yet. Add one above to get started!</p>
+							<p>{{ t.tasks.emptyState }}</p>
 						</div>
 						<ul v-else class="task-list">
 							<li v-for="t in tasks || []" :key="asKey(t)" class="task-item">
