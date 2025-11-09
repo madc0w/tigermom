@@ -74,8 +74,9 @@ export async function sendWelcomeEmail(
 	const secretKey = process.env.MAILJET_SECRET_KEY;
 
 	if (!apiKey || !secretKey) {
-		console.error('Mailjet API credentials not configured');
-		return;
+		throw new Error(
+			'Mailjet API credentials not configured. Please set MAILJET_API_KEY and MAILJET_SECRET_KEY in your .env file'
+		);
 	}
 
 	// Use English translations (can be extended for other locales later)

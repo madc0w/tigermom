@@ -76,7 +76,7 @@ export const en = {
 		passwordsDoNotMatch: 'New passwords do not match',
 	},
 	email: {
-		fromEmail: 'noreply@tigermom.app',
+		fromEmail: 'tigermom@runbox.com',
 		fromName: 'TigerMom',
 		appName: 'TigerMom',
 		welcomeSubject: 'Welcome to TigerMom!',
