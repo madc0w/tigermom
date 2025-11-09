@@ -12,4 +12,11 @@ export default defineNuxtConfig({
 			link: [{ rel: 'icon', type: 'image/png', href: '/favicon.png' }],
 		},
 	},
+	// Heroku assigns a dynamic port via PORT env variable
+	nitro: {
+		preset: 'node-server',
+	},
+	runtimeConfig: {
+		port: process.env.PORT || 3000,
+	},
 });

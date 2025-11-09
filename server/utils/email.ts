@@ -108,28 +108,35 @@ export async function sendWelcomeEmail(
 		],
 	};
 
-	try {
-		const response = await fetch('https://api.mailjet.com/v3.1/send', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization:
-					'Basic ' + Buffer.from(`${apiKey}:${secretKey}`).toString('base64'),
-			},
-			body: JSON.stringify(payload),
-		});
+	const response = await fetch('https://api.mailjet.com/v3.1/send', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization:
+				'Basic ' + Buffer.from(`${apiKey}:${secretKey}`).toString('base64'),
+		},
+		body: JSON.stringify(payload),
+	});
 
-		if (!response.ok) {
-			const errorText = await response.text();
-			console.error(
-				'Failed to send welcome email:',
-				response.status,
-				errorText
-			);
-		} else {
-			console.log('Welcome email sent successfully to:', user.email);
-		}
-	} catch (error) {
-		console.error('Error sending welcome email:', error);
+	if (!response.ok) {
+		const errorText = await response.text();
+		console.error('Failed to send welcome email:', response.status, errorText);
+		throw new Error(`Mailjet API error (${response.status}): ${errorText}`);
 	}
+
+	const result = await response.json();
+	console.log('Welcome email sent successfully to:', user.email);
+	console.log('Mailjet response:', JSON.stringify(result, null, 2));
+
+	// Check message status via Mailjet API
+	const messageId = result.Messages[0]?.To[0]?.MessageID;
+	if (messageId) {
+		console.log(
+			`Check message status at: https://app.mailjet.com/stats/message/${messageId}`
+		);
+		console.log('NOTE: If sender email is not verified in Mailjet,');
+		console.log('      the email will be accepted but never actually sent.');
+	}
+
+	return result;
 }
