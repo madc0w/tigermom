@@ -16,25 +16,11 @@ export async function getDb(): Promise<Db> {
 	const dbName = getEnv('MONGODB_DB', 'app');
 
 	if (!client) {
-		// Fix for MongoDB TLS handshake error on Heroku
-		// Error: "SSL alert number 80" - internal error during TLS negotiation
-		// This is caused by Node.js OpenSSL version incompatibility with MongoDB Atlas
-		const options: any = {
+		// MongoDB driver v5.x with simplified options for better TLS compatibility
+		client = new MongoClient(uri, {
 			serverSelectionTimeoutMS: 5000,
 			connectTimeoutMS: 10000,
-			// Explicitly set minimum TLS version to avoid handshake issues
-			minPoolSize: 1,
-			maxPoolSize: 10,
-		};
-
-		// For MongoDB Atlas connections, we need specific TLS settings
-		if (uri.includes('mongodb+srv') || uri.includes('mongodb.net')) {
-			// Don't explicitly set tls:true as it's implied by mongodb+srv
-			// and setting it can cause issues with connection string parameters
-			// Instead, let the driver handle TLS from the connection string
-		}
-
-		client = new MongoClient(uri, options);
+		});
 	}
 	// Connect once when initializing the DB handle
 	try {
