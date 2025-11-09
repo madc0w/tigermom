@@ -52,8 +52,25 @@ Nitro outputs to `.output/` and can be deployed to many targets.
 
 ## Environment variables
 
-- `MONGODB_URI` (required)
-- `MONGODB_DB` (optional, defaults to `app`)
+- `MONGODB_URI` (required) - MongoDB connection string
+- `MONGODB_DB` (optional, defaults to `app`) - Database name
+- `MAILJET_API_KEY` (required for email) - Mailjet API key for sending emails
+- `MAILJET_SECRET_KEY` (required for email) - Mailjet API secret key
+
+## Email Notifications
+
+The app sends welcome emails to users upon signup using Mailjet. To enable email functionality:
+
+1. Sign up for a [Mailjet account](https://www.mailjet.com/)
+2. Get your API Key and Secret Key from the Mailjet dashboard
+3. Add them to your `.env` file:
+
+```bash
+MAILJET_API_KEY=your_api_key_here
+MAILJET_SECRET_KEY=your_secret_key_here
+```
+
+Welcome emails are sent asynchronously and won't block the signup process. All email strings are internationalized in `i18n/en.ts`.
 
 ## Auth Endpoints
 

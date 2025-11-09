@@ -1,5 +1,6 @@
 import { createError, defineEventHandler, readBody } from 'h3';
 import { randomBytes, scryptSync } from 'node:crypto';
+import { sendWelcomeEmail } from '../../utils/email';
 import { getCollection, UserDoc } from '../../utils/mongo';
 
 // Minimal token generation (non-JWT) for demo purposes
@@ -64,6 +65,11 @@ export default defineEventHandler(async (event) => {
 	const insertResult = await users.insertOne(doc);
 	const _id = insertResult.insertedId.toString();
 	const token = generateToken(_id);
+
+	// Send welcome email asynchronously (don't wait for it)
+	sendWelcomeEmail(doc).catch((error) => {
+		console.error('Failed to send welcome email:', error);
+	});
 
 	return {
 		user: {
