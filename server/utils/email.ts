@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { en } from '../../i18n/en';
 import type { UserDoc } from './mongo';
 
@@ -22,6 +24,46 @@ interface MailjetPayload {
 }
 
 /**
+ * Load and populate HTML email template with translations
+ */
+async function getWelcomeHtmlBody(
+	name: string,
+	appName: string
+): Promise<string> {
+	const templatePath = join(
+		process.cwd(),
+		'server',
+		'utils',
+		'email-templates',
+		'welcome.html'
+	);
+	const template = await readFile(templatePath, 'utf-8');
+
+	const t = en.email;
+
+	// Replace placeholders with actual values
+	return template
+		.replace('{{appName}}', appName)
+		.replace(
+			'{{welcomeHeading}}',
+			t.welcomeHeading.replace('{appName}', appName)
+		)
+		.replace('{{greeting}}', t.greeting.replace('{name}', name))
+		.replace('{{welcomeMessage}}', t.welcomeMessage)
+		.replace(
+			'{{descriptionMessage}}',
+			t.descriptionMessage.replace('{appName}', appName)
+		)
+		.replace('{{gettingStartedHeading}}', t.gettingStartedHeading)
+		.replace('{{step1}}', t.step1)
+		.replace('{{step2}}', t.step2)
+		.replace('{{step3}}', t.step3)
+		.replace('{{helpMessage}}', t.helpMessage)
+		.replace('{{closingMessage}}', t.closingMessage)
+		.replace('{{signature}}', t.signature.replace('{appName}', appName));
+}
+
+/**
  * Sends a welcome email to a newly registered user using Mailjet API
  */
 export async function sendWelcomeEmail(
@@ -41,6 +83,8 @@ export async function sendWelcomeEmail(
 
 	const userName = `${user.firstName} ${user.lastName}`;
 
+	const htmlBody = await getWelcomeHtmlBody(user.firstName, t.email.appName);
+
 	const payload: MailjetPayload = {
 		Messages: [
 			{
@@ -58,9 +102,7 @@ export async function sendWelcomeEmail(
 				TextPart: t.email.welcomeTextBody
 					.replace('{name}', user.firstName)
 					.replace('{appName}', t.email.appName),
-				HTMLPart: t.email.welcomeHtmlBody
-					.replace('{name}', user.firstName)
-					.replace('{appName}', t.email.appName),
+				HTMLPart: htmlBody,
 			},
 		],
 	};

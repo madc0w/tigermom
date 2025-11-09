@@ -90,34 +90,19 @@ If you have any questions or need help, feel free to reach out to us.
 
 Best regards,
 The {appName} Team`,
-		welcomeHtmlBody: `<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Welcome to {appName}</title>
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-	<div style="background-color: #f8f9fa; border-radius: 8px; padding: 30px; margin-bottom: 20px;">
-		<h1 style="color: #2c3e50; margin-top: 0;">Welcome to {appName}! 🎉</h1>
-		<p style="font-size: 16px;">Hi <strong>{name}</strong>,</p>
-		<p style="font-size: 16px;">We're excited to have you on board!</p>
-		<p style="font-size: 16px;">{appName} helps you stay organized and on top of your tasks. You can start adding tasks right away and manage them efficiently.</p>
-	</div>
-	<div style="background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef;">
-		<h2 style="color: #2c3e50; font-size: 18px;">Getting Started</h2>
-		<ul style="font-size: 15px;">
-			<li>Sign in to your account</li>
-			<li>Add your first task</li>
-			<li>Stay organized and productive</li>
-		</ul>
-	</div>
-	<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; font-size: 14px; color: #6c757d;">
-		<p>If you have any questions or need help, feel free to reach out to us.</p>
-		<p style="margin-top: 20px;">Best regards,<br><strong>The {appName} Team</strong></p>
-	</div>
-</body>
-</html>`,
+		welcomeHeading: 'Welcome to {appName}! 🎉',
+		greeting: 'Hi <strong>{name}</strong>,',
+		welcomeMessage: "We're excited to have you on board!",
+		descriptionMessage:
+			'{appName} helps you stay organized and on top of your tasks. You can start adding tasks right away and manage them efficiently.',
+		gettingStartedHeading: 'Getting Started',
+		step1: 'Sign in to your account',
+		step2: 'Add your first task',
+		step3: 'Stay organized and productive',
+		helpMessage:
+			'If you have any questions or need help, feel free to reach out to us.',
+		closingMessage: 'Best regards,',
+		signature: 'The {appName} Team',
 	},
 } as const;
 
