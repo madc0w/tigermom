@@ -14,43 +14,71 @@ function generateToken(userId: string) {
 }
 
 export default defineEventHandler(async (event) => {
-	const body = await readBody(event);
-	const { email, password } = body || {};
+	try {
+		console.log('🔑 Signin request received');
+		const body = await readBody(event);
+		const { email, password } = body || {};
 
-	if (!email || typeof email !== 'string') {
-		throw createError({ statusCode: 400, statusMessage: 'Email is required' });
-	}
-	if (!password || typeof password !== 'string') {
+		console.log('📧 Email:', email);
+
+		if (!email || typeof email !== 'string') {
+			throw createError({
+				statusCode: 400,
+				statusMessage: 'Email is required',
+			});
+		}
+		if (!password || typeof password !== 'string') {
+			throw createError({
+				statusCode: 400,
+				statusMessage: 'Password is required',
+			});
+		}
+
+		console.log('🔌 Connecting to database...');
+		const users = await getCollection<UserDoc>('users');
+
+		console.log('🔍 Looking up user...');
+		const user = await users.findOne({ email: email.toLowerCase() });
+		if (!user) {
+			console.log('❌ User not found');
+			throw createError({
+				statusCode: 401,
+				statusMessage: 'Invalid credentials',
+			});
+		}
+
+		console.log('🔐 Verifying password...');
+		if (!verifyPassword(password, user.passwordHash)) {
+			console.log('❌ Invalid password');
+			throw createError({
+				statusCode: 401,
+				statusMessage: 'Invalid credentials',
+			});
+		}
+
+		console.log('✅ Sign in successful:', user._id.toString());
+		return {
+			user: {
+				_id: user._id.toString(),
+				email: user.email,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				phone: user.phone || null,
+				createdAt: user.createdAt,
+			},
+			token: generateToken(user._id.toString()),
+		};
+	} catch (error: any) {
+		console.error('❌ Signin error:', error);
+		console.error('Error stack:', error?.stack);
+		// Re-throw if it's already an H3 error
+		if (error.statusCode) {
+			throw error;
+		}
+		// Otherwise wrap it
 		throw createError({
-			statusCode: 400,
-			statusMessage: 'Password is required',
+			statusCode: 500,
+			statusMessage: error?.message || 'Failed to sign in',
 		});
 	}
-
-	const users = await getCollection<UserDoc>('users');
-	const user = await users.findOne({ email: email.toLowerCase() });
-	if (!user) {
-		throw createError({
-			statusCode: 401,
-			statusMessage: 'Invalid credentials',
-		});
-	}
-	if (!verifyPassword(password, user.passwordHash)) {
-		throw createError({
-			statusCode: 401,
-			statusMessage: 'Invalid credentials',
-		});
-	}
-
-	return {
-		user: {
-			_id: user._id.toString(),
-			email: user.email,
-			firstName: user.firstName,
-			lastName: user.lastName,
-			phone: user.phone || null,
-			createdAt: user.createdAt,
-		},
-		token: generateToken(user._id.toString()),
-	};
 });

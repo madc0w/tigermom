@@ -1,7 +1,7 @@
 export const en = {
 	app: {
-		title: 'TigerMom',
-		logoAlt: 'TigerMom Logo',
+		title: 'TutorLux',
+		logoAlt: 'TutorLux Logo',
 		tagline: 'Stay organized. Stay on top of your tasks.',
 	},
 	auth: {
@@ -76,10 +76,10 @@ export const en = {
 		passwordsDoNotMatch: 'New passwords do not match',
 	},
 	email: {
-		fromEmail: 'tigermom@runbox.com',
-		fromName: 'TigerMom',
-		appName: 'TigerMom',
-		welcomeSubject: 'Welcome to TigerMom!',
+		fromEmail: 'support@tutorlux.com',
+		fromName: 'TutorLux',
+		appName: 'TutorLux',
+		welcomeSubject: 'Welcome to TutorLux!',
 		welcomeTextBody: `Hi {name},
 
 Welcome to {appName}! We're excited to have you on board.

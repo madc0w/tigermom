@@ -4,7 +4,7 @@
 			<!-- Hero Section -->
 			<div class="hero">
 				<div class="logo-wrapper">
-					<img src="/tigermom.png" :alt="t.app.logoAlt" class="logo" />
+					<img src="/tutorlux.png" :alt="t.app.logoAlt" class="logo" />
 				</div>
 				<h1 class="app-title">{{ t.app.title }}</h1>
 				<p class="tagline">{{ t.app.tagline }}</p>

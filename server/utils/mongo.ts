@@ -15,6 +15,10 @@ export async function getDb(): Promise<Db> {
 	const uri = getEnv('MONGODB_URI', 'mongodb://localhost:27017');
 	const dbName = getEnv('MONGODB_DB', 'app');
 
+	console.log('🔌 Attempting MongoDB connection...');
+	console.log('   URI:', uri.replace(/\/\/([^:]+):([^@]+)@/, '//$1:****@')); // Hide password in logs
+	console.log('   Database:', dbName);
+
 	if (!client) {
 		// MongoDB driver v5.x with simplified options for better TLS compatibility
 		client = new MongoClient(uri, {
@@ -28,9 +32,11 @@ export async function getDb(): Promise<Db> {
 		db = client.db(dbName);
 		console.log('✅ MongoDB connected successfully');
 		return db;
-	} catch (error) {
-		console.error('❌ MongoDB connection failed:', error);
-		throw error;
+	} catch (error: any) {
+		console.error('❌ MongoDB connection failed:', error.message);
+		console.error('   Error code:', error.code);
+		console.error('   Full error:', error);
+		throw new Error(`MongoDB connection error: ${error.message}`);
 	}
 }
 
