@@ -38,11 +38,11 @@ export default defineEventHandler(async (event) => {
 		// Return tutor with _id converted to string
 		return {
 			tutor: {
-				id: tutor._id.toString(),
+				_id: tutor._id.toString(),
 				firstName: tutor.firstName,
 				lastName: tutor.lastName,
-				email: tutor.email,
-				phone: tutor.phone,
+				// email: tutor.email,
+				// phone: tutor.phone,
 				categories: tutor.categories,
 				bio: tutor.bio,
 				hourlyRate: tutor.hourlyRate,

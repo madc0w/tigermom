@@ -79,8 +79,6 @@
 								<thead>
 									<tr>
 										<th>{{ t.tutorSearch?.tableName }}</th>
-										<th>{{ t.tutorSearch?.tableEmail }}</th>
-										<th>{{ t.tutorSearch?.tablePhone }}</th>
 										<th>{{ t.tutorSearch?.tableRate }}</th>
 										<th>{{ t.tutorSearch?.tableCategories }}</th>
 									</tr>
@@ -94,12 +92,6 @@
 									>
 										<td :data-label="t.tutorSearch?.tableName">
 											{{ tutor.firstName }} {{ tutor.lastName }}
-										</td>
-										<td :data-label="t.tutorSearch?.tableEmail">
-											{{ tutor.email }}
-										</td>
-										<td :data-label="t.tutorSearch?.tablePhone">
-											{{ tutor.phone || '—' }}
 										</td>
 										<td :data-label="t.tutorSearch?.tableRate">
 											{{ tutor.hourlyRate ? `€${tutor.hourlyRate}` : '—' }}

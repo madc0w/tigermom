@@ -5,23 +5,23 @@
 				<!-- Back Button -->
 				<div class="back-button-wrapper">
 					<NuxtLink to="/" class="btn btn-back">
-						← {{ t.common?.back || 'Back' }}
+						← {{ t.common?.back }}
 					</NuxtLink>
 				</div>
 
 				<!-- Loading State -->
 				<div v-if="isLoading" class="loading-container">
 					<div class="spinner"></div>
-					<p>{{ t.tutorSearch?.loadingTutor || 'Loading tutor details...' }}</p>
+					<p>{{ t.tutorSearch?.loadingTutor }}</p>
 				</div>
 
 				<!-- Error State -->
 				<div v-else-if="error" class="error-container">
 					<div class="error-icon">⚠️</div>
-					<h2>{{ t.common?.error || 'Error' }}</h2>
+					<h2>{{ t.common?.error }}</h2>
 					<p>{{ error }}</p>
 					<NuxtLink to="/" class="btn btn-primary">
-						{{ t.common?.backToHome || 'Back to Home' }}
+						{{ t.common?.backToHome }}
 					</NuxtLink>
 				</div>
 
@@ -47,36 +47,14 @@
 						<!-- Contact Information -->
 						<div class="info-section">
 							<h2 class="section-title">
-								{{ t.tutorSearch?.contactInfo || 'Contact Information' }}
+								{{ t.tutorSearch?.contactInfo }}
 							</h2>
-							<div class="info-grid">
-								<div class="info-item">
-									<div class="info-label">
-										{{ t.tutorSearch?.tableEmail || 'Email' }}
-									</div>
-									<div class="info-value">
-										<a :href="`mailto:${tutor.email}`" class="link">{{
-											tutor.email
-										}}</a>
-									</div>
-								</div>
-								<div v-if="tutor.phone" class="info-item">
-									<div class="info-label">
-										{{ t.tutorSearch?.tablePhone || 'Phone' }}
-									</div>
-									<div class="info-value">
-										<a :href="`tel:${tutor.phone}`" class="link">{{
-											tutor.phone
-										}}</a>
-									</div>
-								</div>
-							</div>
 						</div>
 
 						<!-- Categories -->
 						<div class="info-section">
 							<h2 class="section-title">
-								{{ t.tutorSearch?.tableCategories || 'Categories' }}
+								{{ t.tutorSearch?.tableCategories }}
 							</h2>
 							<div class="categories-grid">
 								<span
@@ -92,7 +70,7 @@
 						<!-- Bio/Description (if available) -->
 						<div v-if="tutor.bio" class="info-section">
 							<h2 class="section-title">
-								{{ t.tutorSearch?.about || 'About' }}
+								{{ t.tutorSearch?.about }}
 							</h2>
 							<p class="bio-text">{{ tutor.bio }}</p>
 						</div>
@@ -166,7 +144,9 @@ function getCategoryLabel(categoryPath: string): string {
 			const childLabel = parentCategory[child as keyof typeof parentCategory];
 
 			if (typeof childLabel === 'string') {
-				return `${parentLabel} / ${childLabel}`;
+				return `${parentLabel}${
+					t.tutorSearch?.categorySeparator || ' / '
+				}${childLabel}`;
 			}
 		}
 	}
