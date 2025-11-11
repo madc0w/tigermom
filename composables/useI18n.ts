@@ -1,102 +1,36 @@
-import { onMounted, reactive } from 'vue';
+import { reactive } from 'vue';
+import { en } from '../i18n/en';
+import { fr } from '../i18n/fr';
 
-// Inline translations - make this a reactive object directly
-export const translations = reactive({
-	app: {
-		title: 'TutorLux',
-		logoAlt: 'TutorLux Logo',
-		tagline: 'Stay organized. Stay on top of your tasks.',
-	},
-	auth: {
-		signIn: 'Sign in',
-		signUp: 'Sign up',
-		signOut: 'Sign out',
-		welcome: 'Welcome, {name}!',
-		signingIn: 'Signing in…',
-		creatingAccount: 'Creating account…',
-		createYourAccount: 'Create your account',
-		email: 'Email',
-		emailPlaceholder: 'you@example.com',
-		password: 'Password',
-		passwordPlaceholder: 'At least 8 characters',
-		firstName: 'First name',
-		lastName: 'Last name',
-		phone: 'Phone (optional)',
-		phonePlaceholder: '+1 555 555 5555',
-		noAccount: 'No account?',
-		createOne: 'Create one',
-		alreadyHaveAccount: 'Already have an account?',
-		passwordMinLength: 'Password must be at least 8 characters',
-		failedToSignIn: 'Failed to sign in',
-		failedToSignUp: 'Failed to sign up',
-	},
-	tasks: {
-		addPlaceholder: 'Add a task...',
-		addButton: 'Add',
-		addingButton: 'Adding...',
-		loading: 'Loading...',
-		pleaseSignIn: 'Please sign in to view and add tasks.',
-		emptyState: 'No tasks yet. Add one above to get started!',
-	},
-	features: {
-		simpleTaskManagement: {
-			title: 'Simple Task Management',
-			description: 'Add and track your tasks with ease.',
-		},
-		secureAndPrivate: {
-			title: 'Secure & Private',
-			description: 'Your data is protected and private.',
-		},
-		fastAndResponsive: {
-			title: 'Fast & Responsive',
-			description: 'Built for speed and efficiency',
-		},
-	},
-	settings: {
-		title: 'Settings',
-		accountSettings: 'Account Settings',
-		personalInformation: 'Personal Information',
-		updateProfile: 'Update Profile',
-		updating: 'Updating...',
-		changePassword: 'Change Password',
-		currentPassword: 'Current Password',
-		currentPasswordPlaceholder: 'Enter your current password',
-		newPassword: 'New Password',
-		newPasswordPlaceholder: 'At least 8 characters',
-		confirmPassword: 'Confirm New Password',
-		confirmPasswordPlaceholder: 'Re-enter your new password',
-		updatePassword: 'Update Password',
-		updatingPassword: 'Updating...',
-		successProfileUpdated: 'Profile updated successfully!',
-		successPasswordUpdated: 'Password updated successfully!',
-		errorUpdateFailed: 'Failed to update. Please try again.',
-		errorPasswordMismatch: 'Passwords do not match',
-		errorPasswordTooShort: 'Password must be at least 8 characters',
-		backToHome: 'Back to Home',
-		accountInformation: 'Account Information',
-		memberSince: 'Member since',
-		leavePasswordBlank: 'Leave blank to keep current password',
-		passwordsDoNotMatch: 'New passwords do not match',
-	},
-});
+// Map of available translations
+const translationMap: Record<string, any> = {
+	en,
+	fr,
+};
 
-export const currentLang = reactive({ value: 'en' });
+// Detect browser language immediately on client side
+function getInitialLanguage() {
+	if (typeof window === 'undefined') return 'en';
 
-let initialized = false;
+	const browserLang = navigator.language || (navigator as any).userLanguage;
+	const langCode = browserLang.split('-')[0].toLowerCase();
+
+	return translationMap[langCode] ? langCode : 'en';
+}
+
+const initialLang = getInitialLanguage();
+
+// Export the translations as a reactive object with the correct initial language
+export const translations = reactive({ ...translationMap[initialLang] });
+
+export const currentLang = reactive({ value: initialLang });
+
+// Save language preference
+if (typeof window !== 'undefined') {
+	document.cookie = `preferred-lang=${initialLang}; path=/; max-age=31536000`;
+}
 
 export function useI18n() {
-	// Detect browser language on first mount
-	onMounted(() => {
-		if (initialized) return;
-		initialized = true;
-
-		const browserLang = navigator.language || (navigator as any).userLanguage;
-		const langCode = browserLang.split('-')[0].toLowerCase();
-
-		currentLang.value = langCode;
-		document.cookie = `preferred-lang=${langCode}; path=/; max-age=31536000`;
-	});
-
 	return {
 		t: translations,
 		currentLang,
