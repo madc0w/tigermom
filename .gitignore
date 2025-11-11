@@ -25,3 +25,6 @@ logs
 
 run-test.bat
 run-prod.bat
+
+maintenance/run-test.bat
+maintenance/run-prod.bat

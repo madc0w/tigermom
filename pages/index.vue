@@ -97,7 +97,7 @@
 											{{ tutor.phone || '—' }}
 										</td>
 										<td :data-label="t.tutorSearch?.tableRate">
-											{{ tutor.hourlyRate ? `$${tutor.hourlyRate}` : '—' }}
+											{{ tutor.hourlyRate ? `€${tutor.hourlyRate}` : '—' }}
 										</td>
 										<td :data-label="t.tutorSearch?.tableCategories">
 											<div class="categories-cell">
@@ -106,7 +106,7 @@
 													:key="cat"
 													class="category-tag"
 												>
-													{{ cat }}
+													{{ getCategoryLabel(cat) }}
 												</span>
 											</div>
 										</td>
@@ -329,6 +329,37 @@ async function fetchTutors(category: string) {
 			isLoadingTutors.value = false;
 		}
 	}, 200);
+}
+
+// Function to get localized category label
+function getCategoryLabel(categoryPath: string): string {
+	if (!categoryPath || !t.tutorCategories) {
+		return categoryPath;
+	}
+
+	const parts = categoryPath.split('.');
+	const tutorCats = t.tutorCategories;
+
+	if (parts.length === 1) {
+		// Top-level category (e.g., "other")
+		const category = tutorCats[parts[0] as keyof typeof tutorCats];
+		return typeof category === 'string' ? category : parts[0] || categoryPath;
+	} else if (parts.length === 2) {
+		// Nested category (e.g., "math.algebra")
+		const [parent, child] = parts;
+		const parentCategory = tutorCats[parent as keyof typeof tutorCats];
+
+		if (typeof parentCategory === 'object' && parentCategory !== null) {
+			const parentLabel = parentCategory._ || parent;
+			const childLabel = parentCategory[child as keyof typeof parentCategory];
+
+			if (typeof childLabel === 'string') {
+				return `${parentLabel} / ${childLabel}`;
+			}
+		}
+	}
+
+	return categoryPath;
 }
 
 const newTitle = ref('');
