@@ -30,9 +30,31 @@ if (typeof window !== 'undefined') {
 	document.cookie = `preferred-lang=${initialLang}; path=/; max-age=31536000`;
 }
 
+// Get list of available languages with their display names
+export function getAvailableLanguages() {
+	// Use the current language's translations to get the language names
+	return Object.keys(translationMap).map((langCode) => ({
+		code: langCode,
+		name: translations.languages[langCode] || langCode,
+	}));
+}
+
+// Switch to a different language
+export function switchLanguage(langCode: string) {
+	if (translationMap[langCode]) {
+		Object.assign(translations, translationMap[langCode]);
+		currentLang.value = langCode;
+		if (typeof window !== 'undefined') {
+			document.cookie = `preferred-lang=${langCode}; path=/; max-age=31536000`;
+		}
+	}
+}
+
 export function useI18n() {
 	return {
 		t: translations,
 		currentLang,
+		switchLanguage,
+		getAvailableLanguages,
 	};
 }

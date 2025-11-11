@@ -134,6 +134,10 @@ L'équipe {appName}`,
 		},
 		other: 'Autre',
 	},
+	languages: {
+		en: 'Anglais (English)',
+		fr: 'Français',
+	},
 } as const;
 
 export type Translations = typeof fr;

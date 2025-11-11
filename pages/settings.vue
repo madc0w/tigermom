@@ -2,27 +2,46 @@
 	<div class="settings-page">
 		<div class="settings-container">
 			<div class="settings-header">
-				<h1>{{ t.value.settings.title }}</h1>
+				<h1>{{ t.settings.title }}</h1>
 				<NuxtLink to="/" class="btn btn-outline">
-					{{ t.value.settings.backToHome }}
+					{{ t.settings.backToHome }}
 				</NuxtLink>
 			</div>
 
 			<div v-if="!isAuthenticated" class="not-authenticated">
-				<p>{{ t.value.tasks.pleaseSignIn }}</p>
+				<p>{{ t.tasks.pleaseSignIn }}</p>
 				<NuxtLink to="/auth/signin" class="btn btn-primary">
-					{{ t.value.auth.signIn }}
+					{{ t.auth.signIn }}
 				</NuxtLink>
 			</div>
 
 			<template v-else>
+				<!-- Language Settings Section -->
+				<div class="settings-section">
+					<h2>{{ t.tutorCategories.languages._ }}</h2>
+					<form class="settings-form">
+						<label>
+							<span>{{ t.tutorCategories.languages._ }}</span>
+							<select v-model="selectedLanguage" @change="changeLanguage">
+								<option
+									v-for="lang in availableLanguages"
+									:key="lang.code"
+									:value="lang.code"
+								>
+									{{ lang.name }}
+								</option>
+							</select>
+						</label>
+					</form>
+				</div>
+
 				<!-- Personal Information Section -->
 				<div class="settings-section">
-					<h2>{{ t.value.settings.personalInformation }}</h2>
+					<h2>{{ t.settings.personalInformation }}</h2>
 					<form class="settings-form" @submit.prevent="updateProfile">
 						<div class="form-row">
 							<label>
-								<span>{{ t.value.auth.firstName }}</span>
+								<span>{{ t.auth.firstName }}</span>
 								<input
 									v-model.trim="profileForm.firstName"
 									type="text"
@@ -31,7 +50,7 @@
 								/>
 							</label>
 							<label>
-								<span>{{ t.value.auth.lastName }}</span>
+								<span>{{ t.auth.lastName }}</span>
 								<input
 									v-model.trim="profileForm.lastName"
 									type="text"
@@ -42,7 +61,7 @@
 						</div>
 
 						<label>
-							<span>{{ t.value.auth.email }}</span>
+							<span>{{ t.auth.email }}</span>
 							<input
 								v-model.trim="profileForm.email"
 								type="email"
@@ -52,17 +71,17 @@
 						</label>
 
 						<label>
-							<span>{{ t.value.auth.phone }}</span>
+							<span>{{ t.auth.phone }}</span>
 							<input
 								v-model.trim="profileForm.phone"
 								type="tel"
-								:placeholder="t.value.auth.phonePlaceholder"
+								:placeholder="t.auth.phonePlaceholder"
 								:disabled="updatingProfile"
 							/>
 						</label>
 
 						<div v-if="profileSuccess" class="success-message">
-							{{ t.value.settings.successProfileUpdated }}
+							{{ t.settings.successProfileUpdated }}
 						</div>
 						<div v-if="profileError" class="error-message">
 							{{ profileError }}
@@ -78,43 +97,43 @@
 
 				<!-- Change Password Section -->
 				<div class="settings-section">
-					<h2>{{ t.value.settings.changePassword }}</h2>
+					<h2>{{ t.settings.changePassword }}</h2>
 					<form class="settings-form" @submit.prevent="updatePassword">
 						<label>
-							<span>{{ t.value.settings.currentPassword }}</span>
+							<span>{{ t.settings.currentPassword }}</span>
 							<input
 								v-model="passwordForm.currentPassword"
 								type="password"
-								:placeholder="t.value.settings.currentPasswordPlaceholder"
+								:placeholder="t.settings.currentPasswordPlaceholder"
 								required
 								:disabled="updatingPassword"
 							/>
 						</label>
 
 						<label>
-							<span>{{ t.value.settings.newPassword }}</span>
+							<span>{{ t.settings.newPassword }}</span>
 							<input
 								v-model="passwordForm.newPassword"
 								type="password"
-								:placeholder="t.value.settings.newPasswordPlaceholder"
+								:placeholder="t.settings.newPasswordPlaceholder"
 								required
 								:disabled="updatingPassword"
 							/>
 						</label>
 
 						<label>
-							<span>{{ t.value.settings.confirmPassword }}</span>
+							<span>{{ t.settings.confirmPassword }}</span>
 							<input
 								v-model="passwordForm.confirmPassword"
 								type="password"
-								:placeholder="t.value.settings.confirmPasswordPlaceholder"
+								:placeholder="t.settings.confirmPasswordPlaceholder"
 								required
 								:disabled="updatingPassword"
 							/>
 						</label>
 
 						<div v-if="passwordSuccess" class="success-message">
-							{{ t.value.settings.successPasswordUpdated }}
+							{{ t.settings.successPasswordUpdated }}
 						</div>
 						<div v-if="passwordError" class="error-message">
 							{{ passwordError }}
@@ -132,16 +151,16 @@
 
 				<!-- Account Information Section -->
 				<div class="settings-section">
-					<h2>{{ t.value.settings.accountInformation }}</h2>
+					<h2>{{ t.settings.accountInformation }}</h2>
 					<div class="account-info">
 						<div class="info-row">
-							<span class="info-label">{{ t.value.settings.memberSince }}</span>
+							<span class="info-label">{{ t.settings.memberSince }}</span>
 							<span class="info-value">{{
 								formatDate(auth?.user.createdAt)
 							}}</span>
 						</div>
 						<div class="info-row">
-							<span class="info-label">{{ t.value.auth.email }}</span>
+							<span class="info-label">{{ t.auth.email }}</span>
 							<span class="info-value">{{ auth?.user.email }}</span>
 						</div>
 					</div>
@@ -155,11 +174,18 @@
 import { $fetch } from 'ofetch';
 import { onMounted, ref } from 'vue';
 import { useAuth } from '../composables/useAuth';
-import { useI18n } from '../composables/useI18n';
+import { translations as t, useI18n } from '../composables/useI18n';
 
 const i18n = useI18n();
-const t = i18n.t;
 const { auth, isAuthenticated, setAuth } = useAuth();
+
+// Language settings
+const selectedLanguage = ref(i18n.currentLang.value);
+const availableLanguages = i18n.getAvailableLanguages();
+
+function changeLanguage() {
+	i18n.switchLanguage(selectedLanguage.value);
+}
 
 // Profile form state
 const profileForm = ref({
@@ -240,9 +266,7 @@ async function updateProfile() {
 		}, 3000);
 	} catch (e: any) {
 		profileError.value =
-			e?.data?.statusMessage ||
-			e?.message ||
-			t.value.settings.errorUpdateFailed;
+			e?.data?.statusMessage || e?.message || t.settings.errorUpdateFailed;
 	} finally {
 		updatingProfile.value = false;
 	}
@@ -254,7 +278,7 @@ async function updatePassword() {
 
 	// Validate passwords match
 	if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-		passwordError.value = t.value.settings.passwordsDoNotMatch;
+		passwordError.value = t.settings.passwordsDoNotMatch;
 		return;
 	}
 
@@ -291,9 +315,7 @@ async function updatePassword() {
 		}, 3000);
 	} catch (e: any) {
 		passwordError.value =
-			e?.data?.statusMessage ||
-			e?.message ||
-			t.value.settings.errorUpdateFailed;
+			e?.data?.statusMessage || e?.message || t.settings.errorUpdateFailed;
 	} finally {
 		updatingPassword.value = false;
 	}
@@ -396,7 +418,18 @@ input {
 	transition: all 0.3s ease;
 }
 
-input:focus {
+select {
+	padding: 12px 16px;
+	border: 2px solid #e5e7eb;
+	border-radius: 10px;
+	font-size: 16px;
+	transition: all 0.3s ease;
+	background: white;
+	cursor: pointer;
+}
+
+input:focus,
+select:focus {
 	outline: none;
 	border-color: #667eea;
 	box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);

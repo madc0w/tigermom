@@ -1,29 +1,29 @@
 <template>
 	<div class="auth-container">
-		<h2>{{ t.value.auth.signIn }}</h2>
+		<h2>{{ t.auth.signIn }}</h2>
 		<form class="form" @submit.prevent="onSubmit">
 			<label>
-				<span>{{ t.value.auth.email }}</span>
+				<span>{{ t.auth.email }}</span>
 				<input
 					v-model.trim="email"
 					type="email"
 					required
-					:placeholder="t.value.auth.emailPlaceholder"
+					:placeholder="t.auth.emailPlaceholder"
 				/>
 			</label>
 			<label>
-				<span>{{ t.value.auth.password }}</span>
+				<span>{{ t.auth.password }}</span>
 				<input v-model="password" type="password" required />
 			</label>
 
 			<button class="btn" :disabled="submitting">
-				{{ submitting ? t.value.auth.signingIn : t.value.auth.signIn }}
+				{{ submitting ? t.auth.signingIn : t.auth.signIn }}
 			</button>
 
 			<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
 			<p class="switch">
-				{{ t.value.auth.noAccount }}
-				<NuxtLink to="/auth/signup">{{ t.value.auth.createOne }}</NuxtLink>
+				{{ t.auth.noAccount }}
+				<NuxtLink to="/auth/signup">{{ t.auth.createOne }}</NuxtLink>
 			</p>
 		</form>
 	</div>
@@ -34,10 +34,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import type { AuthPayload } from '../../composables/useAuth';
 import { useAuth } from '../../composables/useAuth';
-import { useI18n } from '../../composables/useI18n';
-
-const i18n = useI18n();
-const t = i18n.t;
+import { translations as t } from '../../composables/useI18n';
 
 const email = ref('');
 const password = ref('');
@@ -61,8 +58,7 @@ async function onSubmit() {
 		setAuth(res);
 		await router.push('/');
 	} catch (e: any) {
-		errorMsg.value =
-			e?.data?.message || e?.message || t.value.auth.failedToSignIn;
+		errorMsg.value = e?.data?.message || e?.message || t.auth.failedToSignIn;
 	} finally {
 		submitting.value = false;
 	}

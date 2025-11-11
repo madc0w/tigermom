@@ -132,6 +132,10 @@ The {appName} Team`,
 		},
 		other: 'Other',
 	},
+	languages: {
+		en: 'English',
+		fr: 'French (Français)',
+	},
 } as const;
 
 export type Translations = typeof en;
