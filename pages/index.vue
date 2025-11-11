@@ -41,28 +41,89 @@
 						<input
 							v-model="searchQuery"
 							type="text"
-							:placeholder="'Search tutor categories...'"
+							:placeholder="t.tutorSearch?.searchPlaceholder"
 							class="search-input"
 							@input="handleSearchInput"
-							@focus="showDropdown = true"
+							@focus="isShowingDropdown = true"
 							@blur="handleBlur"
+							@keydown="handleKeyDown"
 						/>
 						<div
-							v-if="showDropdown && filteredCategories.length > 0"
+							v-if="isShowingDropdown && filteredCategories.length > 0"
 							class="autocomplete-dropdown"
 						>
 							<div
-								v-for="item in filteredCategories"
+								v-for="(item, index) in filteredCategories"
 								:key="item.value"
 								class="autocomplete-item"
+								:class="{ active: index === selectedIndex }"
 								@mousedown.prevent="selectCategory(item)"
+								@mouseenter="selectedIndex = index"
 							>
 								{{ item.label }}
 							</div>
 						</div>
 					</div>
-				</div>
 
+					<!-- Loading Spinner -->
+					<div v-if="isLoadingTutors" class="spinner-container">
+						<div class="spinner"></div>
+						<p>{{ t.tutorSearch?.loadingTutors }}</p>
+					</div>
+
+					<!-- Tutors Table -->
+					<div v-else-if="tutors.length > 0" class="tutors-table-container">
+						<h3 class="table-title">{{ t.tutorSearch?.availableTutors }}</h3>
+						<div class="table-wrapper">
+							<table class="tutors-table">
+								<thead>
+									<tr>
+										<th>{{ t.tutorSearch?.tableName }}</th>
+										<th>{{ t.tutorSearch?.tableEmail }}</th>
+										<th>{{ t.tutorSearch?.tablePhone }}</th>
+										<th>{{ t.tutorSearch?.tableRate }}</th>
+										<th>{{ t.tutorSearch?.tableCategories }}</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr v-for="tutor in tutors" :key="tutor.id">
+										<td :data-label="t.tutorSearch?.tableName">
+											{{ tutor.firstName }} {{ tutor.lastName }}
+										</td>
+										<td :data-label="t.tutorSearch?.tableEmail">
+											{{ tutor.email }}
+										</td>
+										<td :data-label="t.tutorSearch?.tablePhone">
+											{{ tutor.phone || '—' }}
+										</td>
+										<td :data-label="t.tutorSearch?.tableRate">
+											{{ tutor.hourlyRate ? `$${tutor.hourlyRate}` : '—' }}
+										</td>
+										<td :data-label="t.tutorSearch?.tableCategories">
+											<div class="categories-cell">
+												<span
+													v-for="cat in tutor.categories"
+													:key="cat"
+													class="category-tag"
+												>
+													{{ cat }}
+												</span>
+											</div>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					<!-- No Results Message -->
+					<div
+						v-else-if="selectedCategory && !isLoadingTutors"
+						class="no-results"
+					>
+						<p>{{ t.tutorSearch?.noTutorsFound }}</p>
+					</div>
+				</div>
 				<div v-if="!isAuthenticated" class="welcome-content">
 					<div class="feature-grid">
 						<div class="feature-card">
@@ -93,15 +154,19 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useAuth } from '../composables/useAuth';
 import { translations as t } from '../composables/useI18n';
 
-const ready = ref(false);
+const isReady = ref(false);
 
 onMounted(() => {
-	ready.value = true;
+	isReady.value = true;
 });
 
 const searchQuery = ref('');
-const showDropdown = ref(false);
+const isShowingDropdown = ref(false);
 const selectedCategory = ref<string | null>(null);
+const selectedIndex = ref(-1);
+const isLoadingTutors = ref(false);
+const tutors = ref<any[]>([]);
+let debounceTimer: NodeJS.Timeout | null = null;
 
 // Build flat list of categories with parent/child labels
 const allCategories = computed(() => {
@@ -156,22 +221,114 @@ const filteredCategories = computed(() => {
 });
 
 function handleSearchInput() {
-	showDropdown.value = true;
+	isShowingDropdown.value = true;
+	selectedIndex.value = -1; // Reset selection when typing
 }
 
 function handleBlur() {
 	// Delay to allow click on dropdown item
 	setTimeout(() => {
-		showDropdown.value = false;
+		isShowingDropdown.value = false;
+		selectedIndex.value = -1;
 	}, 200);
+}
+
+function handleKeyDown(event: KeyboardEvent) {
+	if (!isShowingDropdown.value || filteredCategories.value.length === 0) {
+		return;
+	}
+
+	switch (event.key) {
+		case 'ArrowDown':
+			event.preventDefault();
+			selectedIndex.value = Math.min(
+				selectedIndex.value + 1,
+				filteredCategories.value.length - 1
+			);
+			scrollToSelected();
+			break;
+
+		case 'ArrowUp':
+			event.preventDefault();
+			selectedIndex.value = Math.max(selectedIndex.value - 1, 0);
+			scrollToSelected();
+			break;
+
+		case 'Enter':
+			event.preventDefault();
+			if (
+				selectedIndex.value >= 0 &&
+				selectedIndex.value < filteredCategories.value.length
+			) {
+				const item = filteredCategories.value[selectedIndex.value];
+				if (item) {
+					selectCategory(item);
+				}
+			}
+			break;
+
+		case 'Escape':
+			event.preventDefault();
+			isShowingDropdown.value = false;
+			selectedIndex.value = -1;
+			break;
+	}
+}
+
+function scrollToSelected() {
+	// Scroll the selected item into view
+	setTimeout(() => {
+		const dropdown = document.querySelector('.autocomplete-dropdown');
+		const selectedItem = document.querySelector('.autocomplete-item.active');
+		if (dropdown && selectedItem) {
+			const dropdownRect = dropdown.getBoundingClientRect();
+			const itemRect = selectedItem.getBoundingClientRect();
+
+			if (itemRect.bottom > dropdownRect.bottom) {
+				selectedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+			} else if (itemRect.top < dropdownRect.top) {
+				selectedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+			}
+		}
+	}, 0);
 }
 
 function selectCategory(item: { label: string; value: string }) {
 	searchQuery.value = item.label;
 	selectedCategory.value = item.value;
-	showDropdown.value = false;
-	// You can emit this selection or handle it as needed
-	console.log('Selected category:', item);
+	isShowingDropdown.value = false;
+
+	// Fetch tutors for the selected category
+	fetchTutors(item.value);
+}
+
+async function fetchTutors(category: string) {
+	if (!category) {
+		tutors.value = [];
+		return;
+	}
+
+	isLoadingTutors.value = true;
+
+	// Clear existing debounce timer
+	if (debounceTimer) {
+		clearTimeout(debounceTimer);
+	}
+
+	// Debounce the API call
+	debounceTimer = setTimeout(async () => {
+		try {
+			const response = await $fetch(
+				`/api/tutors/search?category=${encodeURIComponent(category)}`
+			);
+			tutors.value = response.tutors || [];
+		} catch (error) {
+			console.error('Error fetching tutors:', error);
+			tutors.value = [];
+		} finally {
+			isLoadingTutors.value = false;
+		}
+	}, 200);
 }
 
 const newTitle = ref('');
@@ -407,12 +564,130 @@ function fmt(d: string | Date) {
 	color: #374151;
 }
 
-.autocomplete-item:hover {
+.autocomplete-item:hover,
+.autocomplete-item.active {
 	background-color: #f3f4f6;
+}
+
+.autocomplete-item.active {
+	background-color: #ede9fe;
+	color: #6b21a8;
 }
 
 .autocomplete-item:not(:last-child) {
 	border-bottom: 1px solid #f3f4f6;
+}
+
+/* Spinner */
+.spinner-container {
+	text-align: center;
+	padding: 40px 20px;
+	margin-top: 30px;
+}
+
+.spinner {
+	width: 40px;
+	height: 40px;
+	margin: 0 auto 16px;
+	border: 4px solid #e5e7eb;
+	border-top-color: #667eea;
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.spinner-container p {
+	color: #6b7280;
+	font-size: 16px;
+	margin: 0;
+}
+
+/* Tutors Table */
+.tutors-table-container {
+	margin-top: 30px;
+}
+
+.table-title {
+	font-size: 24px;
+	font-weight: 700;
+	color: #111827;
+	margin: 0 0 20px;
+	text-align: center;
+}
+
+.table-wrapper {
+	overflow-x: auto;
+	border-radius: 12px;
+	border: 2px solid #e5e7eb;
+}
+
+.tutors-table {
+	width: 100%;
+	border-collapse: collapse;
+	background: white;
+}
+
+.tutors-table thead {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: white;
+}
+
+.tutors-table th {
+	padding: 14px 16px;
+	text-align: left;
+	font-weight: 600;
+	font-size: 14px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.tutors-table td {
+	padding: 14px 16px;
+	border-bottom: 1px solid #f3f4f6;
+	color: #374151;
+	font-size: 15px;
+}
+
+.tutors-table tbody tr:hover {
+	background-color: #f9fafb;
+}
+
+.tutors-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.categories-cell {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.category-tag {
+	display: inline-block;
+	padding: 4px 10px;
+	background: #ede9fe;
+	color: #6b21a8;
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 500;
+}
+
+/* No Results */
+.no-results {
+	text-align: center;
+	padding: 40px 20px;
+	margin-top: 30px;
+	color: #6b7280;
+	font-size: 16px;
+}
+
+.no-results p {
+	margin: 0;
 }
 
 .feature-grid {
@@ -525,6 +800,64 @@ function fmt(d: string | Date) {
 	.feature-grid {
 		grid-template-columns: 1fr;
 		gap: 20px;
+	}
+
+	.search-section {
+		padding: 20px 16px;
+	}
+
+	.tutors-table {
+		font-size: 14px;
+	}
+
+	.tutors-table th,
+	.tutors-table td {
+		padding: 10px 8px;
+	}
+
+	.table-title {
+		font-size: 20px;
+	}
+
+	/* Stack table on mobile for better readability */
+	.tutors-table thead {
+		display: none;
+	}
+
+	.tutors-table,
+	.tutors-table tbody,
+	.tutors-table tr,
+	.tutors-table td {
+		display: block;
+	}
+
+	.tutors-table tr {
+		margin-bottom: 16px;
+		border: 2px solid #e5e7eb;
+		border-radius: 8px;
+		overflow: hidden;
+	}
+
+	.tutors-table td {
+		padding: 12px;
+		text-align: left;
+		position: relative;
+		padding-left: 50%;
+		border-bottom: 1px solid #f3f4f6;
+	}
+
+	.tutors-table td:before {
+		content: attr(data-label);
+		position: absolute;
+		left: 12px;
+		font-weight: 600;
+		text-transform: uppercase;
+		font-size: 11px;
+		color: #6b7280;
+	}
+
+	.tutors-table td:last-child {
+		border-bottom: none;
 	}
 }
 </style>

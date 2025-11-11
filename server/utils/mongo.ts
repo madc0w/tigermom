@@ -1,4 +1,4 @@
-import { Collection, Db, MongoClient, type Document } from 'mongodb';
+import { Collection, Db, MongoClient, ObjectId, type Document } from 'mongodb';
 
 let client: MongoClient | null = null;
 let db: Db | null = null;
@@ -48,11 +48,23 @@ export async function getCollection<T extends Document = Document>(
 }
 
 export interface UserDoc extends Document {
-	_id?: any;
+	_id?: ObjectId;
 	email: string;
 	firstName: string;
 	lastName: string;
 	phone?: string;
 	passwordHash: string;
 	createdAt: Date;
+}
+
+export interface TutorDoc extends Document {
+	_id?: ObjectId;
+	firstName: string;
+	lastName: string;
+	email: string;
+	phone?: string;
+	categories: string[];
+	bio?: string;
+	hourlyRate?: number;
+	userId?: ObjectId;
 }
