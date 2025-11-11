@@ -36,6 +36,32 @@
 				</div>
 
 				<!-- Content Section -->
+				<div class="search-section">
+					<div class="search-wrapper">
+						<input
+							v-model="searchQuery"
+							type="text"
+							:placeholder="'Search tutor categories...'"
+							class="search-input"
+							@input="handleSearchInput"
+							@focus="showDropdown = true"
+							@blur="handleBlur"
+						/>
+						<div
+							v-if="showDropdown && filteredCategories.length > 0"
+							class="autocomplete-dropdown"
+						>
+							<div
+								v-for="item in filteredCategories"
+								:key="item.value"
+								class="autocomplete-item"
+								@mousedown.prevent="selectCategory(item)"
+							>
+								{{ item.label }}
+							</div>
+						</div>
+					</div>
+				</div>
 
 				<div v-if="!isAuthenticated" class="welcome-content">
 					<div class="feature-grid">
@@ -72,6 +98,81 @@ const ready = ref(false);
 onMounted(() => {
 	ready.value = true;
 });
+
+const searchQuery = ref('');
+const showDropdown = ref(false);
+const selectedCategory = ref<string | null>(null);
+
+// Build flat list of categories with parent/child labels
+const allCategories = computed(() => {
+	const categories: Array<{ label: string; value: string }> = [];
+	const tutorCats = t.tutorCategories;
+
+	if (!tutorCats) return categories;
+
+	Object.keys(tutorCats).forEach((categoryKey) => {
+		const category = tutorCats[categoryKey as keyof typeof tutorCats];
+
+		if (typeof category === 'string') {
+			// Top-level category like "other"
+			categories.push({
+				label: category,
+				value: categoryKey,
+			});
+		} else if (typeof category === 'object' && category !== null) {
+			// Nested category with subcategories
+			const parentLabel = category._ || categoryKey;
+
+			Object.keys(category).forEach((subKey) => {
+				if (subKey !== '_') {
+					const subLabel = category[subKey as keyof typeof category];
+					if (typeof subLabel === 'string') {
+						categories.push({
+							label: `${parentLabel} / ${subLabel}`,
+							value: `${categoryKey}.${subKey}`,
+						});
+					}
+				}
+			});
+		}
+	});
+
+	return categories;
+});
+
+// Filter categories based on search query
+const filteredCategories = computed(() => {
+	const query = searchQuery.value.trim();
+
+	// Require at least 2 characters before showing results
+	if (query.length < 2) {
+		return [];
+	}
+
+	const queryLower = query.toLowerCase();
+	return allCategories.value
+		.filter((cat) => cat.label.toLowerCase().includes(queryLower))
+		.slice(0, 10); // Limit results to 10
+});
+
+function handleSearchInput() {
+	showDropdown.value = true;
+}
+
+function handleBlur() {
+	// Delay to allow click on dropdown item
+	setTimeout(() => {
+		showDropdown.value = false;
+	}, 200);
+}
+
+function selectCategory(item: { label: string; value: string }) {
+	searchQuery.value = item.label;
+	selectedCategory.value = item.value;
+	showDropdown.value = false;
+	// You can emit this selection or handle it as needed
+	console.log('Selected category:', item);
+}
 
 const newTitle = ref('');
 const adding = ref(false);
@@ -251,6 +352,67 @@ function fmt(d: string | Date) {
 	border-radius: 20px;
 	padding: 40px;
 	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Search Section */
+.search-section {
+	background: rgba(255, 255, 255, 0.95);
+	border-radius: 20px;
+	padding: 30px 40px;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+	margin-bottom: 30px;
+}
+
+.search-wrapper {
+	position: relative;
+	max-width: 600px;
+	margin: 0 auto;
+}
+
+.search-input {
+	width: 100%;
+	padding: 14px 20px;
+	font-size: 16px;
+	border: 2px solid #e5e7eb;
+	border-radius: 12px;
+	outline: none;
+	transition: all 0.3s ease;
+	font-family: inherit;
+}
+
+.search-input:focus {
+	border-color: #667eea;
+	box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.autocomplete-dropdown {
+	position: absolute;
+	top: calc(100% + 8px);
+	left: 0;
+	right: 0;
+	background: white;
+	border: 2px solid #e5e7eb;
+	border-radius: 12px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+	max-height: 300px;
+	overflow-y: auto;
+	z-index: 1000;
+}
+
+.autocomplete-item {
+	padding: 12px 20px;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+	font-size: 15px;
+	color: #374151;
+}
+
+.autocomplete-item:hover {
+	background-color: #f3f4f6;
+}
+
+.autocomplete-item:not(:last-child) {
+	border-bottom: 1px solid #f3f4f6;
 }
 
 .feature-grid {
