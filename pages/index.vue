@@ -86,7 +86,12 @@
 									</tr>
 								</thead>
 								<tbody>
-									<tr v-for="tutor in tutors" :key="tutor.id">
+									<tr
+										v-for="tutor in tutors"
+										:key="tutor.id"
+										class="tutor-row"
+										@click="navigateToTutor(tutor.id)"
+									>
 										<td :data-label="t.tutorSearch?.tableName">
 											{{ tutor.firstName }} {{ tutor.lastName }}
 										</td>
@@ -360,6 +365,10 @@ function getCategoryLabel(categoryPath: string): string {
 	}
 
 	return categoryPath;
+}
+
+function navigateToTutor(tutorId: string) {
+	navigateTo(`/tutor?id=${tutorId}`);
 }
 
 const newTitle = ref('');
@@ -686,6 +695,16 @@ function fmt(d: string | Date) {
 
 .tutors-table tbody tr:hover {
 	background-color: #f9fafb;
+}
+
+.tutors-table tbody tr.tutor-row {
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.tutors-table tbody tr.tutor-row:hover {
+	background-color: #ede9fe;
+	transform: scale(1.01);
 }
 
 .tutors-table tbody tr:last-child td {
