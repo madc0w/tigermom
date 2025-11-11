@@ -3,6 +3,7 @@ export default defineNuxtConfig({
 	compatibilityDate: '2025-07-15',
 	devtools: { enabled: true },
 	pages: true,
+	ssr: false,
 	// Force Vite builder to ensure pages are picked up (fallback if experimental config changed)
 	future: {
 		compatibilityVersion: 4,

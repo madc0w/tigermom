@@ -1,114 +1,80 @@
 <template>
-	<div class="page">
-		<div class="container">
-			<!-- Hero Section -->
-			<div class="hero">
-				<div class="logo-wrapper">
-					<img src="/tutorlux.png" :alt="t.app.logoAlt" class="logo" />
-				</div>
-				<h1 class="app-title">{{ t.app.title }}</h1>
-				<p class="tagline">{{ t.app.tagline }}</p>
-
-				<!-- Auth Section -->
-				<div v-if="!isAuthenticated" class="auth-section">
-					<div class="auth-buttons">
-						<NuxtLink to="/auth/signin" class="btn btn-primary">
-							{{ t.auth.signIn }}
-						</NuxtLink>
-						<NuxtLink to="/auth/signup" class="btn btn-secondary">
-							{{ t.auth.signUp }}
-						</NuxtLink>
+	<ClientOnly>
+		<div class="page">
+			<div class="container">
+				<!-- Hero Section -->
+				<div class="hero">
+					<div class="logo-wrapper">
+						<img src="/tutorlux.png" :alt="t.app?.logoAlt" class="logo" />
 					</div>
-				</div>
-				<div v-else class="user-header">
-					<span class="welcome-message">{{
-						t.auth.welcome.replace('{name}', currentUser?.firstName || '')
-					}}</span>
-					<div class="user-actions">
-						<NuxtLink to="/settings" class="btn btn-outline">
-							{{ t.settings.title }}
-						</NuxtLink>
-						<button class="btn btn-outline" @click="logout">
-							{{ t.auth.signOut }}
-						</button>
-					</div>
-				</div>
-			</div>
-
-			<!-- Content Section -->
-			<div v-if="!isAuthenticated" class="welcome-content">
-				<div class="feature-grid">
-					<div class="feature-card">
-						<div class="feature-icon">✓</div>
-						<h3>{{ t.features.simpleTaskManagement.title }}</h3>
-						<p>{{ t.features.simpleTaskManagement.description }}</p>
-					</div>
-					<div class="feature-card">
-						<div class="feature-icon">🔒</div>
-						<h3>{{ t.features.secureAndPrivate.title }}</h3>
-						<p>{{ t.features.secureAndPrivate.description }}</p>
-					</div>
-					<div class="feature-card">
-						<div class="feature-icon">⚡</div>
-						<h3>{{ t.features.fastAndResponsive.title }}</h3>
-						<p>{{ t.features.fastAndResponsive.description }}</p>
-					</div>
-				</div>
-			</div>
-
-			<template v-else>
-				<!-- Task Input Section -->
-				<div class="task-section">
-					<form class="task-form" @submit.prevent="add">
-						<input
-							v-model="newTitle"
-							class="task-input"
-							:placeholder="t.tasks.addPlaceholder"
-							:disabled="adding"
-						/>
-						<button class="btn btn-add" :disabled="adding || !newTitle.trim()">
-							{{ adding ? t.tasks.addingButton : t.tasks.addButton }}
-						</button>
-					</form>
-
-					<!-- Task List -->
-					<div class="task-list-wrapper">
-						<div v-if="pending" class="loading">{{ t.tasks.loading }}</div>
-						<div v-else-if="error" class="error">{{ error.message }}</div>
-						<div v-else-if="!tasks || tasks.length === 0" class="empty-state">
-							<div class="empty-icon">📝</div>
-							<p>{{ t.tasks.emptyState }}</p>
+					<h1 class="app-title">{{ t.app?.title }}</h1>
+					<p class="tagline">{{ t.app?.tagline }}</p>
+					<!-- Auth Section -->
+					<div v-if="isAuthenticated" class="auth-section">
+						<span class="welcome-message">{{
+							t.auth?.welcome?.replace('{name}', currentUser?.firstName || '')
+						}}</span>
+						<div class="user-actions">
+							<NuxtLink to="/settings" class="btn btn-outline">
+								{{ t.settings?.title }}
+							</NuxtLink>
+							<button class="btn btn-outline" @click="logout">
+								{{ t.auth?.signOut }}
+							</button>
 						</div>
-						<ul v-else class="task-list">
-							<li v-for="t in tasks || []" :key="asKey(t)" class="task-item">
-								<span class="task-title">{{ t.title }}</span>
-								<time class="task-date">{{ fmt(t.createdAt) }}</time>
-							</li>
-						</ul>
+					</div>
+					<div v-else class="user-header">
+						<div class="auth-buttons">
+							<NuxtLink to="/auth/signin" class="btn btn-primary">
+								{{ t.auth?.signIn }}
+							</NuxtLink>
+							<NuxtLink to="/auth/signup" class="btn btn-secondary">
+								{{ t.auth?.signUp }}
+							</NuxtLink>
+						</div>
 					</div>
 				</div>
-			</template>
+
+				<!-- Content Section -->
+
+				<div v-if="!isAuthenticated" class="welcome-content">
+					<div class="feature-grid">
+						<div class="feature-card">
+							<div class="feature-icon">✓</div>
+							<h3>{{ t.features?.simpleTaskManagement?.title }}</h3>
+							<p>{{ t.features?.simpleTaskManagement?.description }}</p>
+						</div>
+						<div class="feature-card">
+							<div class="feature-icon">🔒</div>
+							<h3>{{ t.features?.secureAndPrivate?.title }}</h3>
+							<p>{{ t.features?.secureAndPrivate?.description }}</p>
+						</div>
+						<div class="feature-card">
+							<div class="feature-icon">⚡</div>
+							<h3>{{ t.features?.fastAndResponsive?.title }}</h3>
+							<p>{{ t.features?.fastAndResponsive?.description }}</p>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
-	</div>
+	</ClientOnly>
 </template>
 
 <script setup lang="ts">
 import { $fetch } from 'ofetch';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useAuth } from '../composables/useAuth';
-import { en } from '../i18n/en';
+import { translations as t } from '../composables/useI18n';
 
-const t = en;
+const ready = ref(false);
 
-type Task = {
-	_id: string | { $oid: string } | any;
-	title: string;
-	createdAt: string | Date;
-};
+onMounted(() => {
+	ready.value = true;
+});
 
 const newTitle = ref('');
 const adding = ref(false);
-const tasks = ref<Task[] | null>(null);
 const pending = ref(false);
 const error = ref<Error | null>(null);
 const { auth, isAuthenticated, signOut } = useAuth();
@@ -117,13 +83,11 @@ const currentUser = computed(() => auth.value?.user || null);
 
 function logout() {
 	signOut();
-	tasks.value = [];
 }
 
 async function refresh() {
 	pending.value = true;
 	try {
-		tasks.value = await $fetch<Task[]>('/api/tasks');
 		error.value = null;
 	} catch (e: any) {
 		error.value = e;
@@ -140,30 +104,8 @@ watch(
 	{ immediate: true }
 );
 
-function asKey(t: Task) {
-	// Handle possible different shapes for ObjectId when serialized
-	return typeof t._id === 'string'
-		? t._id
-		: t._id?.$oid ?? JSON.stringify(t._id);
-}
-
 function fmt(d: string | Date) {
 	return new Date(d).toLocaleString();
-}
-
-async function add() {
-	if (!newTitle.value.trim()) return;
-	adding.value = true;
-	try {
-		await $fetch('/api/tasks', {
-			method: 'POST',
-			body: { title: newTitle.value },
-		});
-		newTitle.value = '';
-		await refresh();
-	} finally {
-		adding.value = false;
-	}
 }
 </script>
 
@@ -351,35 +293,6 @@ async function add() {
 	line-height: 1.6;
 }
 
-/* Task Section */
-.task-section {
-	background: rgba(255, 255, 255, 0.95);
-	border-radius: 20px;
-	padding: 40px;
-	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
-
-.task-form {
-	display: flex;
-	gap: 12px;
-	margin-bottom: 30px;
-}
-
-.task-input {
-	flex: 1;
-	padding: 14px 20px;
-	border: 2px solid #e5e7eb;
-	border-radius: 12px;
-	font-size: 16px;
-	transition: all 0.3s ease;
-}
-
-.task-input:focus {
-	outline: none;
-	border-color: #667eea;
-	box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
 .btn-add {
 	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 	color: white;
@@ -389,11 +302,6 @@ async function add() {
 .btn-add:hover:not(:disabled) {
 	transform: translateY(-2px);
 	box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-}
-
-/* Task List */
-.task-list-wrapper {
-	min-height: 200px;
 }
 
 .loading {
@@ -429,43 +337,6 @@ async function add() {
 	margin: 0;
 }
 
-.task-list {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-	display: grid;
-	gap: 12px;
-}
-
-.task-item {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 16px 20px;
-	background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
-	border: 2px solid #e5e7eb;
-	border-radius: 12px;
-	transition: all 0.3s ease;
-}
-
-.task-item:hover {
-	transform: translateX(5px);
-	border-color: #667eea;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.task-title {
-	font-weight: 600;
-	color: #111827;
-	font-size: 16px;
-}
-
-.task-date {
-	color: #9ca3af;
-	font-size: 13px;
-	font-weight: 500;
-}
-
 /* Responsive Design */
 @media (max-width: 640px) {
 	.hero {
@@ -485,24 +356,13 @@ async function add() {
 		height: 80px;
 	}
 
-	.welcome-content,
-	.task-section {
+	.welcome-content {
 		padding: 24px 16px;
 	}
 
 	.feature-grid {
 		grid-template-columns: 1fr;
 		gap: 20px;
-	}
-
-	.task-form {
-		flex-direction: column;
-	}
-
-	.task-item {
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 8px;
 	}
 }
 </style>

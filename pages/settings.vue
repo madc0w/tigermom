@@ -2,27 +2,27 @@
 	<div class="settings-page">
 		<div class="settings-container">
 			<div class="settings-header">
-				<h1>{{ t.settings.title }}</h1>
+				<h1>{{ t.value.settings.title }}</h1>
 				<NuxtLink to="/" class="btn btn-outline">
-					{{ t.settings.backToHome }}
+					{{ t.value.settings.backToHome }}
 				</NuxtLink>
 			</div>
 
 			<div v-if="!isAuthenticated" class="not-authenticated">
-				<p>{{ t.tasks.pleaseSignIn }}</p>
+				<p>{{ t.value.tasks.pleaseSignIn }}</p>
 				<NuxtLink to="/auth/signin" class="btn btn-primary">
-					{{ t.auth.signIn }}
+					{{ t.value.auth.signIn }}
 				</NuxtLink>
 			</div>
 
 			<template v-else>
 				<!-- Personal Information Section -->
 				<div class="settings-section">
-					<h2>{{ t.settings.personalInformation }}</h2>
+					<h2>{{ t.value.settings.personalInformation }}</h2>
 					<form class="settings-form" @submit.prevent="updateProfile">
 						<div class="form-row">
 							<label>
-								<span>{{ t.auth.firstName }}</span>
+								<span>{{ t.value.auth.firstName }}</span>
 								<input
 									v-model.trim="profileForm.firstName"
 									type="text"
@@ -31,7 +31,7 @@
 								/>
 							</label>
 							<label>
-								<span>{{ t.auth.lastName }}</span>
+								<span>{{ t.value.auth.lastName }}</span>
 								<input
 									v-model.trim="profileForm.lastName"
 									type="text"
@@ -42,7 +42,7 @@
 						</div>
 
 						<label>
-							<span>{{ t.auth.email }}</span>
+							<span>{{ t.value.auth.email }}</span>
 							<input
 								v-model.trim="profileForm.email"
 								type="email"
@@ -52,17 +52,17 @@
 						</label>
 
 						<label>
-							<span>{{ t.auth.phone }}</span>
+							<span>{{ t.value.auth.phone }}</span>
 							<input
 								v-model.trim="profileForm.phone"
 								type="tel"
-								:placeholder="t.auth.phonePlaceholder"
+								:placeholder="t.value.auth.phonePlaceholder"
 								:disabled="updatingProfile"
 							/>
 						</label>
 
 						<div v-if="profileSuccess" class="success-message">
-							{{ t.settings.successProfileUpdated }}
+							{{ t.value.settings.successProfileUpdated }}
 						</div>
 						<div v-if="profileError" class="error-message">
 							{{ profileError }}
@@ -78,43 +78,43 @@
 
 				<!-- Change Password Section -->
 				<div class="settings-section">
-					<h2>{{ t.settings.changePassword }}</h2>
+					<h2>{{ t.value.settings.changePassword }}</h2>
 					<form class="settings-form" @submit.prevent="updatePassword">
 						<label>
-							<span>{{ t.settings.currentPassword }}</span>
+							<span>{{ t.value.settings.currentPassword }}</span>
 							<input
 								v-model="passwordForm.currentPassword"
 								type="password"
-								:placeholder="t.settings.currentPasswordPlaceholder"
+								:placeholder="t.value.settings.currentPasswordPlaceholder"
 								required
 								:disabled="updatingPassword"
 							/>
 						</label>
 
 						<label>
-							<span>{{ t.settings.newPassword }}</span>
+							<span>{{ t.value.settings.newPassword }}</span>
 							<input
 								v-model="passwordForm.newPassword"
 								type="password"
-								:placeholder="t.settings.newPasswordPlaceholder"
+								:placeholder="t.value.settings.newPasswordPlaceholder"
 								required
 								:disabled="updatingPassword"
 							/>
 						</label>
 
 						<label>
-							<span>{{ t.settings.confirmPassword }}</span>
+							<span>{{ t.value.settings.confirmPassword }}</span>
 							<input
 								v-model="passwordForm.confirmPassword"
 								type="password"
-								:placeholder="t.settings.confirmPasswordPlaceholder"
+								:placeholder="t.value.settings.confirmPasswordPlaceholder"
 								required
 								:disabled="updatingPassword"
 							/>
 						</label>
 
 						<div v-if="passwordSuccess" class="success-message">
-							{{ t.settings.successPasswordUpdated }}
+							{{ t.value.settings.successPasswordUpdated }}
 						</div>
 						<div v-if="passwordError" class="error-message">
 							{{ passwordError }}
@@ -132,16 +132,16 @@
 
 				<!-- Account Information Section -->
 				<div class="settings-section">
-					<h2>{{ t.settings.accountInformation }}</h2>
+					<h2>{{ t.value.settings.accountInformation }}</h2>
 					<div class="account-info">
 						<div class="info-row">
-							<span class="info-label">{{ t.settings.memberSince }}</span>
+							<span class="info-label">{{ t.value.settings.memberSince }}</span>
 							<span class="info-value">{{
 								formatDate(auth?.user.createdAt)
 							}}</span>
 						</div>
 						<div class="info-row">
-							<span class="info-label">{{ t.auth.email }}</span>
+							<span class="info-label">{{ t.value.auth.email }}</span>
 							<span class="info-value">{{ auth?.user.email }}</span>
 						</div>
 					</div>
@@ -155,9 +155,10 @@
 import { $fetch } from 'ofetch';
 import { onMounted, ref } from 'vue';
 import { useAuth } from '../composables/useAuth';
-import { en } from '../i18n/en';
+import { useI18n } from '../composables/useI18n';
 
-const t = en;
+const i18n = useI18n();
+const t = i18n.t;
 const { auth, isAuthenticated, setAuth } = useAuth();
 
 // Profile form state
@@ -239,7 +240,9 @@ async function updateProfile() {
 		}, 3000);
 	} catch (e: any) {
 		profileError.value =
-			e?.data?.statusMessage || e?.message || t.settings.errorUpdateFailed;
+			e?.data?.statusMessage ||
+			e?.message ||
+			t.value.settings.errorUpdateFailed;
 	} finally {
 		updatingProfile.value = false;
 	}
@@ -251,7 +254,7 @@ async function updatePassword() {
 
 	// Validate passwords match
 	if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-		passwordError.value = t.settings.passwordsDoNotMatch;
+		passwordError.value = t.value.settings.passwordsDoNotMatch;
 		return;
 	}
 
@@ -288,7 +291,9 @@ async function updatePassword() {
 		}, 3000);
 	} catch (e: any) {
 		passwordError.value =
-			e?.data?.statusMessage || e?.message || t.settings.errorUpdateFailed;
+			e?.data?.statusMessage ||
+			e?.message ||
+			t.value.settings.errorUpdateFailed;
 	} finally {
 		updatingPassword.value = false;
 	}

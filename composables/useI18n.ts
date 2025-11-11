@@ -1,4 +1,7 @@
-export const en = {
+import { onMounted, reactive } from 'vue';
+
+// Inline translations - make this a reactive object directly
+export const translations = reactive({
 	app: {
 		title: 'TutorLux',
 		logoAlt: 'TutorLux Logo',
@@ -75,63 +78,27 @@ export const en = {
 		leavePasswordBlank: 'Leave blank to keep current password',
 		passwordsDoNotMatch: 'New passwords do not match',
 	},
-	email: {
-		fromEmail: 'support@tutorlux.com',
-		fromName: 'TutorLux',
-		appName: 'TutorLux',
-		welcomeSubject: 'Welcome to TutorLux!',
-		welcomeTextBody: `Hi {name},
+});
 
-Welcome to {appName}! We're excited to have you on board.
+export const currentLang = reactive({ value: 'en' });
 
-{appName} helps you stay organized and on top of your tasks. You can start adding tasks right away and manage them efficiently.
+let initialized = false;
 
-If you have any questions or need help, feel free to reach out to us.
+export function useI18n() {
+	// Detect browser language on first mount
+	onMounted(() => {
+		if (initialized) return;
+		initialized = true;
 
-Best regards,
-The {appName} Team`,
-		welcomeHeading: 'Welcome to {appName}! 🎉',
-		greeting: 'Hi <strong>{name}</strong>,',
-		welcomeMessage: "We're excited to have you on board!",
-		descriptionMessage:
-			'{appName} helps you stay organized and on top of your tasks. You can start adding tasks right away and manage them efficiently.',
-		gettingStartedHeading: 'Getting Started',
-		step1: 'Sign in to your account',
-		step2: 'Add your first task',
-		step3: 'Stay organized and productive',
-		helpMessage:
-			'If you have any questions or need help, feel free to reach out to us.',
-		closingMessage: 'Best regards,',
-		signature: 'The {appName} Team',
-	},
-	tutorCategories: {
-		math: {
-			_: 'Mathematics',
-			algebra: 'Algebra',
-			geometry: 'Geometry',
-			calculus: 'Calculus',
-		},
-		science: {
-			_: 'Science',
-			physics: 'Physics',
-			chemistry: 'Chemistry',
-			biology: 'Biology',
-		},
-		languages: {
-			_: 'Languages',
-			english: 'English',
-			spanish: 'Spanish',
-			french: 'French',
-			chinese: 'Chinese',
-			luxembourgish: 'Luxembourgish',
-			german: 'German',
-		},
-		sports: {
-			_: 'Sports',
-			tennis: 'Tennis',
-		},
-		other: 'Other',
-	},
-} as const;
+		const browserLang = navigator.language || (navigator as any).userLanguage;
+		const langCode = browserLang.split('-')[0].toLowerCase();
 
-export type Translations = typeof en;
+		currentLang.value = langCode;
+		document.cookie = `preferred-lang=${langCode}; path=/; max-age=31536000`;
+	});
+
+	return {
+		t: translations,
+		currentLang,
+	};
+}
