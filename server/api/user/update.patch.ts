@@ -1,7 +1,15 @@
 import { createError, defineEventHandler, getHeader, readBody } from 'h3';
+import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import { randomBytes, scryptSync } from 'node:crypto';
 import { getCollection, UserDoc } from '../../utils/mongo';
+
+interface JWTPayload {
+	userId: string;
+	email: string;
+	firstName: string;
+	lastName: string;
+}
 
 function verifyPassword(password: string, stored: string): boolean {
 	const [salt, key] = stored.split(':');
@@ -15,13 +23,20 @@ function hashPassword(password: string): string {
 	return `${salt}:${derived.toString('hex')}`;
 }
 
+function capitalizeFirstChar(str: string): string {
+	if (!str) return str;
+	return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function getUserIdFromToken(token: string): string | null {
 	try {
-		// Token is base64url encoded userId
-		const decoded = Buffer.from(token, 'base64url').toString('utf-8');
-		// Extract userId (before the dot if it has a random suffix)
-		const userId = decoded.split('.')[0];
-		return userId;
+		const secret = process.env.JWT_SECRET;
+		if (secret) {
+			const payload = jwt.verify(token, secret) as JWTPayload;
+			return payload.userId;
+		} else {
+			throw new Error('JWT_SECRET is not defined');
+		}
 	} catch (e) {
 		return null;
 	}
@@ -107,7 +122,7 @@ export default defineEventHandler(async (event) => {
 					statusMessage: 'First name is required',
 				});
 			}
-			updateFields.firstName = firstName;
+			updateFields.firstName = capitalizeFirstChar(firstName.trim());
 		}
 
 		if (lastName !== undefined) {
@@ -117,7 +132,7 @@ export default defineEventHandler(async (event) => {
 					statusMessage: 'Last name is required',
 				});
 			}
-			updateFields.lastName = lastName;
+			updateFields.lastName = capitalizeFirstChar(lastName.trim());
 		}
 
 		if (email !== undefined) {

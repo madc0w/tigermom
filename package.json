@@ -16,6 +16,8 @@
 		"heroku-postbuild": "npm run build"
 	},
 	"dependencies": {
+		"@types/jsonwebtoken": "^9.0.10",
+		"jsonwebtoken": "^9.0.2",
 		"mongodb": "^5.9.2",
 		"nuxt": "^4.2.0",
 		"vue": "^3.5.22"

@@ -1,4 +1,5 @@
 import { createError, defineEventHandler, readBody } from 'h3';
+import jwt from 'jsonwebtoken';
 import { randomBytes, scryptSync } from 'node:crypto';
 import { appendFileSync } from 'node:fs';
 import { sendWelcomeEmail } from '../../utils/email';
@@ -33,11 +34,26 @@ function logError(message: string, error: any) {
 	}
 }
 
-// Minimal token generation (non-JWT) for demo purposes
-function generateToken(userId: string) {
-	return Buffer.from(`${userId}.${randomBytes(16).toString('hex')}`).toString(
-		'base64url'
-	);
+// Generate JWT token
+function generateToken(
+	userId: string,
+	email: string,
+	firstName: string,
+	lastName: string
+) {
+	const secret = process.env.JWT_SECRET;
+	if (secret) {
+		const payload = {
+			userId,
+			email,
+			firstName,
+			lastName,
+		};
+
+		return jwt.sign(payload, secret);
+	} else {
+		throw new Error('JWT_SECRET is not defined');
+	}
 }
 
 function hashPassword(password: string): string {
@@ -46,69 +62,74 @@ function hashPassword(password: string): string {
 	return `${salt}:${(derived as any).toString('hex')}`;
 }
 
+function capitalizeFirstChar(str: string): string {
+	if (!str) return str;
+	return str[0].toUpperCase() + str.slice(1);
+}
+
 export default defineEventHandler(async (event) => {
 	try {
-		log('📝 Signup request received');
+		// log('📝 Signup request received');
 		const body = await readBody(event);
 		const { email, firstName, lastName, password, phone } = body || {};
 
-		log('📧 Email:', email);
-		log('👤 Name:', firstName, lastName);
+		// log('📧 Email:', email);
+		// log('👤 Name:', firstName, lastName);
 
 		if (!email || typeof email !== 'string') {
 			throw createError({
 				statusCode: 400,
-				statusMessage: 'Email is required',
+				data: { errorCode: 'EMAIL_REQUIRED' },
 			});
 		}
 		if (!firstName || typeof firstName !== 'string') {
 			throw createError({
 				statusCode: 400,
-				statusMessage: 'First name is required',
+				data: { errorCode: 'FIRST_NAME_REQUIRED' },
 			});
 		}
 		if (!lastName || typeof lastName !== 'string') {
 			throw createError({
 				statusCode: 400,
-				statusMessage: 'Last name is required',
+				data: { errorCode: 'LAST_NAME_REQUIRED' },
 			});
 		}
 		if (!password || typeof password !== 'string' || password.length < 8) {
 			throw createError({
 				statusCode: 400,
-				statusMessage: 'Password must be at least 8 characters',
+				data: { errorCode: 'PASSWORD_TOO_SHORT' },
 			});
 		}
 
-		log('🔌 Connecting to database...');
+		// log('🔌 Connecting to database...');
 		const users = await getCollection<UserDoc>('users');
 
-		log('🔍 Checking for existing user...');
+		// log('🔍 Checking for existing user...');
 		const existing = await users.findOne({ email: email.toLowerCase() });
 		if (existing) {
 			throw createError({
 				statusCode: 409,
-				statusMessage: 'Email already registered',
+				data: { errorCode: 'EMAIL_ALREADY_REGISTERED' },
 			});
 		}
 
-		log('🔐 Hashing password...');
+		// log('🔐 Hashing password...');
 		const passwordHash = hashPassword(password);
 		const doc: UserDoc = {
 			email: email.toLowerCase(),
-			firstName: firstName.trim(),
-			lastName: lastName.trim(),
+			firstName: capitalizeFirstChar(firstName.trim()),
+			lastName: capitalizeFirstChar(lastName.trim()),
 			phone: phone ? String(phone).trim() : undefined,
 			passwordHash,
 			createdAt: new Date(),
 		};
 
-		log('💾 Inserting user into database...');
+		// log('💾 Inserting user into database...');
 		const insertResult = await users.insertOne(doc);
 		const _id = insertResult.insertedId.toString();
-		const token = generateToken(_id);
+		const token = generateToken(_id, doc.email, doc.firstName, doc.lastName);
 
-		log('✅ User created successfully:', _id);
+		// log('✅ User created successfully:', _id);
 
 		// Send welcome email asynchronously (don't wait for it)
 		sendWelcomeEmail(doc).catch((error) => {
@@ -128,14 +149,14 @@ export default defineEventHandler(async (event) => {
 		};
 	} catch (error: any) {
 		logError('❌ Signup error:', error);
-		// Re-throw if it's already an H3 error
-		if (error.statusCode) {
+		// Re-throw if it's already an H3 error with errorCode
+		if (error.statusCode && error.data?.errorCode) {
 			throw error;
 		}
 		// Otherwise wrap it
 		throw createError({
 			statusCode: 500,
-			statusMessage: error?.message || 'Failed to create account',
+			data: { errorCode: 'ACCOUNT_CREATION_FAILED' },
 		});
 	}
 });

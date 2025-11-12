@@ -1,4 +1,5 @@
 import { createError, defineEventHandler, readBody } from 'h3';
+import jwt from 'jsonwebtoken';
 import { scryptSync } from 'node:crypto';
 import { getCollection, UserDoc } from '../../utils/mongo';
 
@@ -9,8 +10,20 @@ function verifyPassword(password: string, stored: string): boolean {
 	return (derived as any).toString('hex') === hashHex;
 }
 
-function generateToken(userId: string) {
-	return Buffer.from(userId).toString('base64url');
+function generateToken(user: UserDoc) {
+	const secret = process.env.JWT_SECRET;
+	if (secret) {
+		const payload = {
+			userId: user._id?.toString() || '',
+			email: user.email,
+			firstName: user.firstName,
+			lastName: user.lastName,
+		};
+
+		return jwt.sign(payload, secret);
+	} else {
+		throw new Error('JWT_SECRET is not defined');
+	}
 }
 
 export default defineEventHandler(async (event) => {
@@ -24,13 +37,13 @@ export default defineEventHandler(async (event) => {
 		if (!email || typeof email !== 'string') {
 			throw createError({
 				statusCode: 400,
-				statusMessage: 'Email is required',
+				data: { errorCode: 'EMAIL_REQUIRED' },
 			});
 		}
 		if (!password || typeof password !== 'string') {
 			throw createError({
 				statusCode: 400,
-				statusMessage: 'Password is required',
+				data: { errorCode: 'PASSWORD_REQUIRED' },
 			});
 		}
 
@@ -43,7 +56,7 @@ export default defineEventHandler(async (event) => {
 			console.log('❌ User not found');
 			throw createError({
 				statusCode: 401,
-				statusMessage: 'Invalid credentials',
+				data: { errorCode: 'INVALID_CREDENTIALS' },
 			});
 		}
 
@@ -52,7 +65,7 @@ export default defineEventHandler(async (event) => {
 			console.log('❌ Invalid password');
 			throw createError({
 				statusCode: 401,
-				statusMessage: 'Invalid credentials',
+				data: { errorCode: 'INVALID_CREDENTIALS' },
 			});
 		}
 
@@ -66,19 +79,19 @@ export default defineEventHandler(async (event) => {
 				phone: user.phone || null,
 				createdAt: user.createdAt,
 			},
-			token: generateToken(user._id.toString()),
+			token: generateToken(user),
 		};
 	} catch (error: any) {
 		console.error('❌ Signin error:', error);
 		console.error('Error stack:', error?.stack);
-		// Re-throw if it's already an H3 error
-		if (error.statusCode) {
+		// Re-throw if it's already an H3 error with errorCode
+		if (error.statusCode && error.data?.errorCode) {
 			throw error;
 		}
 		// Otherwise wrap it
 		throw createError({
 			statusCode: 500,
-			statusMessage: error?.message || 'Failed to sign in',
+			data: { errorCode: 'SIGNIN_FAILED' },
 		});
 	}
 });

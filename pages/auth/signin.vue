@@ -58,7 +58,11 @@ async function onSubmit() {
 		setAuth(res);
 		await router.push('/');
 	} catch (e: any) {
-		errorMsg.value = e?.data?.message || e?.message || t.auth.failedToSignIn;
+		const errorCode = e?.data?.errorCode;
+		errorMsg.value =
+			errorCode && t.errorCodes[errorCode]
+				? t.errorCodes[errorCode]
+				: t.errorCodes.UNKNOWN_ERROR;
 	} finally {
 		submitting.value = false;
 	}

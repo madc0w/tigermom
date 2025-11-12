@@ -653,9 +653,9 @@ function fmt(d: string | Date) {
 }
 
 .table-wrapper {
-	overflow-x: auto;
 	border-radius: 12px;
 	border: 2px solid #e5e7eb;
+	overflow: hidden;
 }
 
 .tutors-table {

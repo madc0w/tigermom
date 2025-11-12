@@ -41,7 +41,7 @@ export default defineEventHandler(async (event) => {
 				_id: tutor._id.toString(),
 				firstName: tutor.firstName,
 				lastName: tutor.lastName,
-				// email: tutor.email,
+				email: tutor.email,
 				// phone: tutor.phone,
 				categories: tutor.categories,
 				bio: tutor.bio,
